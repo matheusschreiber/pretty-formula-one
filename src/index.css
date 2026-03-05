@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@font-face {
+    font-family: 'Kdam Thmor Pro';
+    src: url('./assets/KdamThmorPro-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@theme {
+    --color-primary: #E10600;
+    --color-gray-primary: #252728;
+    --color-gray-light: #8E8E8E;
+    --background-image-main-dark: radial-gradient(circle, #141414 0%, #000000 100%);
+}
+
+body {
+    background: #2b2a2a;
+    background: radial-gradient(circle,rgba(43, 42, 42, 1) 0%, rgba(0, 0, 0, 1) 100%);
+    color: white;
+    font-family: "Kdam Thmor Pro", sans-serif;
+}
