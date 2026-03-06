@@ -1,0 +1,142 @@
+[
+    {
+        "id": "leclerc_2024",
+        "team": "Ferrari",
+        "abbreviation": "LEC",
+        "name": "Charles Leclerc",
+        "teamLogo": "/assets/icons/ferrari.png"
+    },
+    {
+        "id": "piastri_2024",
+        "team": "McLaren",
+        "abbreviation": "PIA",
+        "name": "Oscar Piastri",
+        "teamLogo": "/assets/icons/mclaren.png"
+    },
+    {
+        "id": "sainz_2024",
+        "team": "Ferrari",
+        "abbreviation": "SAI",
+        "name": "Carlos Sainz",
+        "teamLogo": "/assets/icons/ferrari.png"
+    },
+    {
+        "id": "norris_2024",
+        "team": "McLaren",
+        "abbreviation": "NOR",
+        "name": "Lando Norris",
+        "teamLogo": "/assets/icons/mclaren.png"
+    },
+    {
+        "id": "russell_2024",
+        "team": "Mercedes",
+        "abbreviation": "RUS",
+        "name": "George Russell",
+        "teamLogo": "/assets/icons/mercedes.png"
+    },
+    {
+        "id": "max_verstappen_2024",
+        "team": "Red Bull Racing",
+        "abbreviation": "VER",
+        "name": "Max Verstappen",
+        "teamLogo": "/assets/icons/red-bull-racing.png"
+    },
+    {
+        "id": "hamilton_2024",
+        "team": "Mercedes",
+        "abbreviation": "HAM",
+        "name": "Lewis Hamilton",
+        "teamLogo": "/assets/icons/mercedes.png"
+    },
+    {
+        "id": "tsunoda_2024",
+        "team": "RB",
+        "abbreviation": "TSU",
+        "name": "Yuki Tsunoda",
+        "teamLogo": "/assets/icons/rb.png"
+    },
+    {
+        "id": "albon_2024",
+        "team": "Williams",
+        "abbreviation": "ALB",
+        "name": "Alexander Albon",
+        "teamLogo": "/assets/icons/williams.png"
+    },
+    {
+        "id": "gasly_2024",
+        "team": "Alpine",
+        "abbreviation": "GAS",
+        "name": "Pierre Gasly",
+        "teamLogo": "/assets/icons/alpine.png"
+    },
+    {
+        "id": "alonso_2024",
+        "team": "Aston Martin",
+        "abbreviation": "ALO",
+        "name": "Fernando Alonso",
+        "teamLogo": "/assets/icons/aston-martin.png"
+    },
+    {
+        "id": "ricciardo_2024",
+        "team": "RB",
+        "abbreviation": "RIC",
+        "name": "Daniel Ricciardo",
+        "teamLogo": "/assets/icons/rb.png"
+    },
+    {
+        "id": "bottas_2024",
+        "team": "Kick Sauber",
+        "abbreviation": "BOT",
+        "name": "Valtteri Bottas",
+        "teamLogo": "/assets/icons/kick-sauber.png"
+    },
+    {
+        "id": "stroll_2024",
+        "team": "Aston Martin",
+        "abbreviation": "STR",
+        "name": "Lance Stroll",
+        "teamLogo": "/assets/icons/aston-martin.png"
+    },
+    {
+        "id": "sargeant_2024",
+        "team": "Williams",
+        "abbreviation": "SAR",
+        "name": "Logan Sargeant",
+        "teamLogo": "/assets/icons/williams.png"
+    },
+    {
+        "id": "zhou_2024",
+        "team": "Kick Sauber",
+        "abbreviation": "ZHO",
+        "name": "Guanyu Zhou",
+        "teamLogo": "/assets/icons/kick-sauber.png"
+    },
+    {
+        "id": "ocon_2024",
+        "team": "Alpine",
+        "abbreviation": "OCO",
+        "name": "Esteban Ocon",
+        "teamLogo": "/assets/icons/alpine.png"
+    },
+    {
+        "id": "perez_2024",
+        "team": "Red Bull Racing",
+        "abbreviation": "PER",
+        "name": "Sergio Perez",
+        "teamLogo": "/assets/icons/red-bull-racing.png"
+    },
+    {
+        "id": "hulkenberg_2024",
+        "team": "Haas F1 Team",
+        "abbreviation": "HUL",
+        "name": "Nico Hulkenberg",
+        "teamLogo": "/assets/icons/haas-f1-team.png"
+    },
+    {
+        "id": "kevin_magnussen_2024",
+        "team": "Haas F1 Team",
+        "abbreviation": "MAG",
+        "name": "Kevin Magnussen",
+        "teamLogo": "/assets/icons/haas-f1-team.png"
+    }
+]

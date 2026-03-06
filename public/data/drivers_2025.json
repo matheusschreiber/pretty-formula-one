@@ -1,0 +1,142 @@
+[
+    {
+        "id": "norris_2025",
+        "team": "McLaren",
+        "abbreviation": "NOR",
+        "name": "Lando Norris",
+        "teamLogo": "/assets/icons/mclaren.png"
+    },
+    {
+        "id": "leclerc_2025",
+        "team": "Ferrari",
+        "abbreviation": "LEC",
+        "name": "Charles Leclerc",
+        "teamLogo": "/assets/icons/ferrari.png"
+    },
+    {
+        "id": "piastri_2025",
+        "team": "McLaren",
+        "abbreviation": "PIA",
+        "name": "Oscar Piastri",
+        "teamLogo": "/assets/icons/mclaren.png"
+    },
+    {
+        "id": "max_verstappen_2025",
+        "team": "Red Bull Racing",
+        "abbreviation": "VER",
+        "name": "Max Verstappen",
+        "teamLogo": "/assets/icons/red-bull-racing.png"
+    },
+    {
+        "id": "hamilton_2025",
+        "team": "Ferrari",
+        "abbreviation": "HAM",
+        "name": "Lewis Hamilton",
+        "teamLogo": "/assets/icons/ferrari.png"
+    },
+    {
+        "id": "hadjar_2025",
+        "team": "Racing Bulls",
+        "abbreviation": "HAD",
+        "name": "Isack Hadjar",
+        "teamLogo": "/assets/icons/racing-bulls.png"
+    },
+    {
+        "id": "ocon_2025",
+        "team": "Haas F1 Team",
+        "abbreviation": "OCO",
+        "name": "Esteban Ocon",
+        "teamLogo": "/assets/icons/haas-f1-team.png"
+    },
+    {
+        "id": "lawson_2025",
+        "team": "Racing Bulls",
+        "abbreviation": "LAW",
+        "name": "Liam Lawson",
+        "teamLogo": "/assets/icons/racing-bulls.png"
+    },
+    {
+        "id": "albon_2025",
+        "team": "Williams",
+        "abbreviation": "ALB",
+        "name": "Alexander Albon",
+        "teamLogo": "/assets/icons/williams.png"
+    },
+    {
+        "id": "sainz_2025",
+        "team": "Williams",
+        "abbreviation": "SAI",
+        "name": "Carlos Sainz",
+        "teamLogo": "/assets/icons/williams.png"
+    },
+    {
+        "id": "russell_2025",
+        "team": "Mercedes",
+        "abbreviation": "RUS",
+        "name": "George Russell",
+        "teamLogo": "/assets/icons/mercedes.png"
+    },
+    {
+        "id": "bearman_2025",
+        "team": "Haas F1 Team",
+        "abbreviation": "BEA",
+        "name": "Oliver Bearman",
+        "teamLogo": "/assets/icons/haas-f1-team.png"
+    },
+    {
+        "id": "colapinto_2025",
+        "team": "Alpine",
+        "abbreviation": "COL",
+        "name": "Franco Colapinto",
+        "teamLogo": "/assets/icons/alpine.png"
+    },
+    {
+        "id": "bortoleto_2025",
+        "team": "Kick Sauber",
+        "abbreviation": "BOR",
+        "name": "Gabriel Bortoleto",
+        "teamLogo": "/assets/icons/kick-sauber.png"
+    },
+    {
+        "id": "stroll_2025",
+        "team": "Aston Martin",
+        "abbreviation": "STR",
+        "name": "Lance Stroll",
+        "teamLogo": "/assets/icons/aston-martin.png"
+    },
+    {
+        "id": "hulkenberg_2025",
+        "team": "Kick Sauber",
+        "abbreviation": "HUL",
+        "name": "Nico Hulkenberg",
+        "teamLogo": "/assets/icons/kick-sauber.png"
+    },
+    {
+        "id": "tsunoda_2025",
+        "team": "Red Bull Racing",
+        "abbreviation": "TSU",
+        "name": "Yuki Tsunoda",
+        "teamLogo": "/assets/icons/red-bull-racing.png"
+    },
+    {
+        "id": "antonelli_2025",
+        "team": "Mercedes",
+        "abbreviation": "ANT",
+        "name": "Kimi Antonelli",
+        "teamLogo": "/assets/icons/mercedes.png"
+    },
+    {
+        "id": "alonso_2025",
+        "team": "Aston Martin",
+        "abbreviation": "ALO",
+        "name": "Fernando Alonso",
+        "teamLogo": "/assets/icons/aston-martin.png"
+    },
+    {
+        "id": "gasly_2025",
+        "team": "Alpine",
+        "abbreviation": "GAS",
+        "name": "Pierre Gasly",
+        "teamLogo": "/assets/icons/alpine.png"
+    }
+]

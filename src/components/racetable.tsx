@@ -47,7 +47,7 @@ export default function Racetable() {
                                 </td> */}
                                 <td className="text-[.7rem] text-gray-light px-2">+{result.racePoints.toFixed(1)}</td>
                                 <td className="text-[.7rem] text-gray-light text-center px-2">+{result.sprintPoints.toFixed(1)}</td>
-                                <td className="text-center px-2">+{(result.sprintPoints + result.racePoints).toFixed(1)}</td>
+                                <td className="font-bold text-center px-2">+{(result.sprintPoints + result.racePoints).toFixed(1)}</td>
                             </tr>
                         ))}
                     </tbody>

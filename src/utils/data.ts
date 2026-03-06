@@ -20,7 +20,7 @@ export async function getData(
 
     // getting drivers if not already fetched
     if (drivers.length === 0) {
-        const responseDrivers = await fetch('/api/drivers');
+        const responseDrivers = await fetch(`/data/drivers_${year}.json`);
         const rawDrivers = await responseDrivers.json() as Driver[];
         drivers = rawDrivers.map((driver) => ({
             ...driver,
@@ -32,7 +32,7 @@ export async function getData(
 
     // getting rounds if not already fetched
     if (rounds.length === 0) {
-        const responseRounds = await fetch('/api/rounds?year=' + year);
+        const responseRounds = await fetch(`/data/rounds_${year}.json`);
         rounds = await responseRounds.json() as Round[];
         const driverMap = new Map(drivers.map(d => [d.id, d]));
         rounds = rounds.map((round) => ({
