@@ -148,3 +148,13 @@ export async function getData(
 
     return { drivers, round: currentRound, rounds };
 }
+
+export async function getTelemetryData(): Promise<string> {
+    const response = await fetch(`/data/telemetry_VER_Monaco_2024.csv`);
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("text/csv")) {
+        return "";
+    }
+    const data = await response.text();
+    return data;
+}
