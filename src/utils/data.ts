@@ -1,10 +1,7 @@
-import type { Driver, RaceResult, Round } from "./types";
+import type { Driver, Round } from "./types";
 
-import ferrari from '../assets/icons/ferrari.png'
-import mercedes from '../assets/icons/mercedes.png'
-import mclaren from '../assets/icons/mclaren.png'
-
-import bahrein from '../assets/circuits/bahrein.png'
+import { getTeamLogo } from "./teams-logos";
+import { getBackgroundImage } from "./circuits-backgrounds";
 
 export async function getTimeToNextRace(): Promise<{ days: number, hours: number, minutes: number }> {
     return {
@@ -14,91 +11,75 @@ export async function getTimeToNextRace(): Promise<{ days: number, hours: number
     }
 }
 
-export async function getDrivers(): Promise<Driver[]> {
-    return Promise.resolve([
-        {
-            id: 1,
-            team: 'Ferrari',
-            abbreviation: 'HAM',
-            name: 'Hamilton',
-            points: 398.0,
-            recentProfit: 12,
-            teamLogo: ferrari,
-        },
-        {
-            id: 2,
-            team: 'Mercedes',
-            abbreviation: 'RUS',
-            name: 'Russell',
-            points: 234.0,
+export async function getData(
+    year: number, 
+    roundIdx: number,
+    drivers: Driver[] = [],
+    rounds: Round[] = []
+): Promise<{ drivers: Driver[], round: Round, rounds: Round[] }> {
+
+    // getting drivers if not already fetched
+    if (drivers.length === 0) {
+        const responseDrivers = await fetch('/api/drivers');
+        const rawDrivers = await responseDrivers.json() as Driver[];
+        drivers = rawDrivers.map((driver) => ({
+            ...driver,
+            points: 0,
             recentProfit: 0,
-            teamLogo: mercedes,
-        },
-        {
-            id: 3,
-            team: 'McLaren',
-            abbreviation: 'NOR',
-            name: 'Norris',
-            points: 200.0,
-            recentProfit: 2,
-            teamLogo: mclaren,
-        }
-    ])
+            teamLogo: getTeamLogo(driver.team),
+        }));
+    }
+
+    // getting rounds if not already fetched
+    if (rounds.length === 0) {
+        const responseRounds = await fetch('/api/rounds?year=' + year);
+        rounds = await responseRounds.json() as Round[];
+        const driverMap = new Map(drivers.map(d => [d.id, d]));
+        rounds = rounds.map((round) => ({
+            ...round,
+            backgroundImage: getBackgroundImage(round.name),
+            results: round.results.map((result) => ({
+                ...result,
+                driver: driverMap.get(result.driver_id),
+            }))
+        }));
+    }
+
+    // setting focus round
+    const actualIdx = Math.max(1, Math.min(roundIdx, rounds.length));
+    const currentRound = rounds[actualIdx - 1];
+
+    // calculating points and profits
+    drivers.forEach(d => { d.points = 0; d.recentProfit = 0; });
+    const driverMap = new Map(drivers.map(d => [d.id, d]));
+    for (let i = 0; i < actualIdx - 1; i++) {
+        rounds[i].results.forEach(res => {
+            const d = driverMap.get(res.driver_id);
+            if (d) d.points += (res.racePoints + res.sprintPoints);
+        });
+    }
+    let oldRanks: string[] = [];
+    if (actualIdx > 1) {
+        oldRanks = [...drivers]
+            .sort((a, b) => b.points - a.points)
+            .map(d => d.id as unknown as string);
+    }
+    currentRound.results.forEach(res => {
+        const d = driverMap.get(res.driver_id);
+        if (d) d.points += (res.racePoints + res.sprintPoints);
+    });
+    if (actualIdx > 1) {
+        const newRanks = [...drivers]
+            .sort((a, b) => b.points - a.points)
+            .map(d => d.id as unknown as string);
+
+        drivers.forEach(driver => {
+            const oldPos = oldRanks.indexOf(driver.id as unknown as string);
+            const newPos = newRanks.indexOf(driver.id as unknown as string);
+            driver.recentProfit = oldPos - newPos;
+        });
+    }
+    drivers.sort((a, b) => b.points - a.points);
+
+    return { drivers, round: currentRound, rounds };
 }
-
-export function getRound(roundId: number): Promise<Round> {
-
-    return Promise.resolve({
-        id: 1,
-        index: 1,
-        totalRounds: 24,
-        name: 'Bahrain',
-        nameVerbose: 'Bahrain Grand Prix',
-        country: 'Bahrain',
-        backgroundImage: bahrein,
-        results: [
-        {
-            id: 1,
-            driver: {
-                id: 1,
-                team: 'Ferrari',
-                abbreviation: 'HAM',
-                name: 'Hamilton',
-                points: 398.0,
-                recentProfit: 12,
-                teamLogo: ferrari,
-            } as Driver,
-            racePoints: 25,
-            sprintPoints: 10,
-        } as RaceResult,
-        {
-            id: 2,
-            driver: {
-                id: 2,
-                team: 'Mercedes',
-                abbreviation: 'RUS',
-                name: 'Russell',
-                points: 234.0,
-                recentProfit: 0,
-                teamLogo: mercedes,
-            } as Driver,
-            racePoints: 18,
-            sprintPoints: 8,
-        } as RaceResult,
-        {
-            id: 3,
-            driver: {
-                id: 3,
-                team: 'McLaren',
-                abbreviation: 'NOR',
-                name: 'Norris',
-                points: 200.0,
-                recentProfit: 2,
-                teamLogo: mclaren,
-            } as Driver,
-            racePoints: 15,
-            sprintPoints: 6,
-        } as RaceResult,
-    ]
-    })
-} 

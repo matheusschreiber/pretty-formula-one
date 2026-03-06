@@ -2,9 +2,16 @@
 import { useContext } from 'react';
 import { Context } from './context-provider';
 
+import chevron_up from "../assets/icons/chevron_up.svg"
+import chevron_down from "../assets/icons/chevron_down.svg"
+
 export default function DriversTable() {
 
     const { drivers, round } = useContext(Context)!;
+
+    if (!round || drivers.length === 0) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <>
@@ -17,9 +24,11 @@ export default function DriversTable() {
                 </div>
 
 
-                <table className="w-full border-separate border-spacing-y-2 text-xs px-4">
+                <table className="w-full border-separate border-spacing-y-2 px-4">
                     <thead>
-                        <th colSpan={2} className='text-left px-2 text-gray-light text-[.6rem]'>ALL TIME</th>
+                        <tr>
+                            <th colSpan={2} className='text-left px-2 text-gray-light text-[.6rem]'>ALL TIME</th>
+                        </tr>
                     </thead>
                     <tbody>
                         {drivers.map((driver, index) => (
@@ -30,10 +39,26 @@ export default function DriversTable() {
                                 </td>
                                 <td className='text-center px-2'>{driver.abbreviation}</td>
                                 <td className="text-gray-light px-2">
-                                    <p className="truncate w-16">{driver.name}</p>
+                                    <p className="truncate w-30">{driver.name}</p>
                                 </td>
                                 <td className="px-2">{driver.points.toFixed(1)}</td>
-                                <td className="text-[.6rem] text-gray-light text-center px-2">+{driver.recentProfit}</td>
+                                {driver.recentProfit > 0 ? (
+                                    <td className="text-[.6rem] text-green-400 text-center px-2">
+                                        <div className='flex gap-1'>
+                                            <img src={chevron_up} className='w-2' alt="Chevron icon" /> {driver.recentProfit}
+                                        </div>
+                                    </td>
+                                ) : driver.recentProfit < 0 ? (
+                                    <td className="text-[.6rem] text-red-400 text-center px-2">
+                                        <div className='flex gap-1'>
+                                            <img src={chevron_down} className='w-2' alt="Chevron icon" /> {driver.recentProfit}
+                                        </div>
+                                    </td>
+                                ) : (
+                                    <td className="text-[.6rem] text-gray-400 text-center px-2">
+                                        ----
+                                    </td>
+                                )}
                             </tr>
                         ))}
                     </tbody>

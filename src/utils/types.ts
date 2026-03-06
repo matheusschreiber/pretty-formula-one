@@ -10,7 +10,8 @@ export type Driver = {
 
 export type RaceResult = {
     id: number,
-    driver: Driver,
+    driver_id: number,
+    driver?: Driver,
     racePoints: number,
     sprintPoints: number,
 }
@@ -23,5 +24,6 @@ export type Round = {
     nameVerbose: string,
     country: string,
     backgroundImage: string,
+    year: number,
     results: RaceResult[],
 }
