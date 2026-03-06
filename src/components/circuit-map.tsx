@@ -12,7 +12,7 @@ interface CircuitMapProps {
 }
 
 export default function CircuitMap({ round, onPrev, onNext, canPrev, canNext }: CircuitMapProps) {
-    if (!round) return <div className="h-62.5 flex items-center">Loading...</div>;
+    if (!round) return <></>
 
     return (
         <div className="flex flex-col justify-center items-center text-center mb-15">

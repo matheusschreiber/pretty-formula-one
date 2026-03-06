@@ -7,11 +7,11 @@ import { motion, type Variants } from 'framer-motion';
 
 export default function Racetable() {
 
-    const { round } = useContext(Context)!;
-
-    if (!round) {
-        return <div>Loading...</div>;
-    }
+    const context = useContext(Context)!;
+    if (!context) return <></>;
+    
+    const { round } = context
+    if (!round || !round.results) return <></>;
 
     const containerVariants = {
         hidden: { opacity: 0 },

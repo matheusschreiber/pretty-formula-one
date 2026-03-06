@@ -4,10 +4,12 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function DriversTable() {
-    const { drivers, round } = useContext(Context)!;
+    const context = useContext(Context)!;
+    if (!context) return <></>
+    const { drivers, round } = context;
 
     if (!round || drivers.length === 0) {
-        return <div>Loading...</div>;
+        return <></>;
     }
 
     return (

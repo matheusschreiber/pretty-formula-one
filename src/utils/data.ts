@@ -7,6 +7,15 @@ export async function getTimeToNextRace(): Promise<{ days: number, hours: number
     const now = new Date();
     const year = now.getFullYear();
     const responseDates = await fetch(`/data/dates_${year}.json`);
+    const contentType = responseDates.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+        return {
+            days: 0,
+            hours: 0,
+            minutes: 0,
+            weekendName: "Grand Prix",
+        };
+    }
     const rawDates = await responseDates.json() as {name:string, date:string}[];
     
     // get next and last events
@@ -64,6 +73,14 @@ export async function getData(
 
     // getting drivers if not already fetched
     const responseDrivers = await fetch(`/data/drivers_${year}.json`);
+    let contentType = responseDrivers.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+        return {
+            drivers: [],
+            round: {} as Round,
+            rounds: [],
+        };
+    }
     const rawDrivers = await responseDrivers.json() as Driver[];
     drivers = rawDrivers.map((driver) => ({
         ...driver,
@@ -74,6 +91,14 @@ export async function getData(
 
     // getting rounds if not already fetched
     const responseRounds = await fetch(`/data/rounds_${year}.json`);
+    contentType = responseRounds.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+        return {
+            drivers: [],
+            round: {} as Round,
+            rounds: [],
+        };
+    }
     rounds = await responseRounds.json() as Round[];
     let driverMap = new Map(drivers.map(d => [d.id, d]));
     rounds = rounds.map((round) => ({

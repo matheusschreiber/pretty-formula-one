@@ -19,27 +19,19 @@ export default function Misc() {
                         onNext={() => { setYear(year < new Date().getFullYear() ? year + 1 : year); setRoundIdx(1) }}
                     />
 
-                <CircuitMap 
-                    round={round} 
-                    onPrev={() => setRoundIdx(roundIdx > 1 ? roundIdx - 1 : roundIdx)}
-                    onNext={() => setRoundIdx(roundIdx < rounds.length ? roundIdx + 1 : roundIdx)}
-                    canPrev={roundIdx > 1}
-                    canNext={roundIdx < rounds.length}
-                />
-
-                <div className="flex lg:flex-row flex-col gap-12 mb-5">
-                    
-
-                    {/* <CarouselSelector
-                        label="Round"
-                        value={roundIdx}
-                        min={1}
-                        max={rounds.length}
-                        displayValue={roundIdx}
+                {round && rounds.length > 0 && (
+                    <CircuitMap 
+                        round={round} 
                         onPrev={() => setRoundIdx(roundIdx > 1 ? roundIdx - 1 : roundIdx)}
                         onNext={() => setRoundIdx(roundIdx < rounds.length ? roundIdx + 1 : roundIdx)}
-                    /> */}
-                </div>
+                        canPrev={roundIdx > 1}
+                        canNext={roundIdx < rounds.length}
+                    />
+                )}
+
+                {(!round || rounds.length === 0) ? (
+                    <p className="text-center mt-10">Data not found :(</p>
+                ):(<></>)}
             </div>
         </>
     )
