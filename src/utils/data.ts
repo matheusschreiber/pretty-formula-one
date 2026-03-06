@@ -19,31 +19,27 @@ export async function getData(
 ): Promise<{ drivers: Driver[], round: Round, rounds: Round[] }> {
 
     // getting drivers if not already fetched
-    if (drivers.length === 0) {
-        const responseDrivers = await fetch(`/data/drivers_${year}.json`);
-        const rawDrivers = await responseDrivers.json() as Driver[];
-        drivers = rawDrivers.map((driver) => ({
-            ...driver,
-            points: 0,
-            recentProfit: 0,
-            teamLogo: getTeamLogo(driver.team),
-        }));
-    }
+    const responseDrivers = await fetch(`/data/drivers_${year}.json`);
+    const rawDrivers = await responseDrivers.json() as Driver[];
+    drivers = rawDrivers.map((driver) => ({
+        ...driver,
+        points: 0,
+        recentProfit: 0,
+        teamLogo: getTeamLogo(driver.team),
+    }));
 
     // getting rounds if not already fetched
-    if (rounds.length === 0) {
-        const responseRounds = await fetch(`/data/rounds_${year}.json`);
-        rounds = await responseRounds.json() as Round[];
-        const driverMap = new Map(drivers.map(d => [d.id, d]));
-        rounds = rounds.map((round) => ({
-            ...round,
-            backgroundImage: getBackgroundImage(round.name),
-            results: round.results.map((result) => ({
-                ...result,
-                driver: driverMap.get(result.driver_id),
-            }))
-        }));
-    }
+    const responseRounds = await fetch(`/data/rounds_${year}.json`);
+    rounds = await responseRounds.json() as Round[];
+    let driverMap = new Map(drivers.map(d => [d.id, d]));
+    rounds = rounds.map((round) => ({
+        ...round,
+        backgroundImage: getBackgroundImage(round.name),
+        results: round.results.map((result) => ({
+            ...result,
+            driver: driverMap.get(result.driver_id),
+        }))
+    }));
 
     // setting focus round
     const actualIdx = Math.max(1, Math.min(roundIdx, rounds.length));
@@ -51,7 +47,7 @@ export async function getData(
 
     // calculating points and profits
     drivers.forEach(d => { d.points = 0; d.recentProfit = 0; });
-    const driverMap = new Map(drivers.map(d => [d.id, d]));
+    driverMap = new Map(drivers.map(d => [d.id, d]));
     for (let i = 0; i < actualIdx - 1; i++) {
         rounds[i].results.forEach(res => {
             const d = driverMap.get(res.driver_id);

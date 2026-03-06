@@ -7,7 +7,7 @@ import redbull from '../assets/icons/redbull.png'
 import amartin from '../assets/icons/amartin.png'  
 import ferrari from '../assets/icons/ferrari.png'  
 import mclaren from '../assets/icons/mclaren.png'  
-import rbracing from '../assets/icons/redbull.png'  
+import rbracing from '../assets/icons/rbracing.png'  
 import williams from '../assets/icons/williams.png'
 
 export const getTeamLogo = (team:string) => {
@@ -21,6 +21,7 @@ export const getTeamLogo = (team:string) => {
         case 'Red Bull Racing':
             return redbull;
         case 'RB':
+        case 'Racing Bulls':
             return rbracing;
         case 'Alpine':
             return alpine;

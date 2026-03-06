@@ -19,7 +19,7 @@ export default function Header() {
 
     return (
         <header className='flex items-center px-10'>
-            <img src={logo} className="logo react h-15" alt="React logo" />
+            <img src={logo} className="absolute h-15" alt="Logo" />
 
             <div className='w-full flex justify-center'>
                 <div className='flex items-center gap-6 bg-black p-3 px-8 rounded-2xl border border-gray-primary shadow-2xl mt-8'>
