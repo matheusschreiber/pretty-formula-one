@@ -11,7 +11,7 @@ export default function DriversTable() {
     }
 
     return (
-        <div className="bg-main-dark w-100 border border-gray-primary rounded-3xl overflow-hidden">
+        <div className="bg-main-dark w-100 border border-gray-primary rounded-3xl overflow-hidden lg:m-0 mx-auto">
             <div className="flex pt-10 flex-col items-center justify-center gap-2 mb-4">
                 <p className="text-4xl text-gray-light">ROUND</p>
                 <p className="text-6xl">{round.index}/{round.totalRounds}</p>

@@ -10,9 +10,15 @@ function App() {
     return (
         <ContextProvider>
             <Header />
-            <div className='mt-10 flex justify-around'>
+            <div className='mt-10 lg:flex lg:justify-around justify-center hidden'>
                 <DriversTable />
                 <Misc />
+                <RaceTable />
+            </div>
+
+            <div className='mt-10 flex flex-col justify-center lg:hidden'>
+                <Misc />
+                <DriversTable />
                 <RaceTable />
             </div>
         </ContextProvider>
