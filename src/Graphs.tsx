@@ -4,6 +4,8 @@ import { getTelemetryData } from "./utils/data";
 import BrakeThrottleGraph from "./components/graphs/brake-trottle";
 import TrackMap from "./components/graphs/trackmap";
 import { useTelemetryTimer } from "./hooks/useTelemetryTimer";
+import Header from "./components/header";
+import { ContextProvider } from "./components/context-provider";
 
 export interface TelemetryPoint {
     seconds: number;
@@ -40,11 +42,13 @@ export default function Graphs(){
     }, []);
 
     return (
+        <ContextProvider>
+            <Header />
+            <div className="w-full flex items-center justify-center p-8">
+                <TrackMap telemetryData={telemetryData} currentTime={currentTime} />
 
-        <div className="w-full flex items-center justify-center p-8">
-            <TrackMap telemetryData={telemetryData} currentTime={currentTime} />
-
-            <BrakeThrottleGraph telemetryData={telemetryData} currentTime={currentTime}/>
-        </div>
+                <BrakeThrottleGraph telemetryData={telemetryData} currentTime={currentTime}/>
+            </div>
+        </ContextProvider>
     )
 }

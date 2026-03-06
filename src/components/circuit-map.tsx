@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getCircuitTrack } from "../utils/circuits-tracks";
 import type { Round } from "../utils/types";
+import { getCountryFlagIcon } from "../utils/country-flags";
 
 interface CircuitMapProps {
     round: Round | undefined;
@@ -55,9 +56,10 @@ export default function CircuitMap({ round, onPrev, onNext, canPrev, canNext }: 
                 key={round.nameVerbose}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="font-bold text-gray-light mt-4 lg:w-125 tracking-widest uppercase"
+                className="font-bold text-gray-light mt-4 lg:w-125 text-sm tracking-widest uppercase 
+                    flex items-center justify-center"
             >
-                {round.nameVerbose}
+                <p>{round.nameVerbose}</p>
             </motion.p>
         </div>
     );
