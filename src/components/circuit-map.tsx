@@ -1,33 +1,13 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getCircuitTrack } from "../utils/circuits-tracks";
 import type { Round } from "../utils/types";
-import { getCountryFlagIcon } from "../utils/country-flags";
 
-interface CircuitMapProps {
-    round: Round | undefined;
-    onPrev: () => void;
-    onNext: () => void;
-    canPrev: boolean;
-    canNext: boolean;
-}
-
-export default function CircuitMap({ round, onPrev, onNext, canPrev, canNext }: CircuitMapProps) {
+export default function CircuitMap({ round }: { round: Round | undefined }) {
     if (!round) return <></>
 
     return (
         <div className="flex flex-col justify-center items-center text-center mb-15">
-            <div className="relative w-full max-w-2xl h-62.5 flex items-center justify-center group">
-                
-                <button 
-                    onClick={onPrev}
-                    disabled={!canPrev}
-                    className={`absolute left-0 z-20 p-4 transition-all duration-200 
-                        ${canPrev ? 'text-white hover:text-primary hover:scale-125 cursor-pointer' : 'text-gray-700 cursor-not-allowed opacity-30'}`}
-                >
-                    <ChevronLeft size={48} strokeWidth={3} />
-                </button>
-
+            <div className="relative w-full max-w-2xl h-50 flex items-center justify-center group">
                 <div className="relative w-96 h-full flex items-center justify-center">
                     <AnimatePresence mode="wait">
                         <motion.img
@@ -41,25 +21,16 @@ export default function CircuitMap({ round, onPrev, onNext, canPrev, canNext }: 
                         />
                     </AnimatePresence>
                 </div>
-
-                <button 
-                    onClick={onNext}
-                    disabled={!canNext}
-                    className={`absolute right-0 z-20 p-4 transition-all duration-200 
-                        ${canNext ? 'text-white hover:text-primary hover:scale-125 cursor-pointer' : 'text-gray-700 cursor-not-allowed opacity-30'}`}
-                >
-                    <ChevronRight size={48} strokeWidth={3} />
-                </button>
             </div>
 
             <motion.p 
                 key={round.nameVerbose}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="font-bold text-gray-light mt-4 lg:w-125 text-sm tracking-widest uppercase 
+                className="font-bold text-gray-light lg:w-125 text-sm tracking-widest uppercase 
                     flex items-center justify-center"
             >
-                <p>{round.nameVerbose}</p>
+                {round.nameVerbose}
             </motion.p>
         </div>
     );

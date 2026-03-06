@@ -5,6 +5,7 @@ import RaceTable from './components/racetable'
 import { ContextProvider } from './components/context-provider'
 
 import Misc from './components/misc'
+import Footer from './components/footer'
 
 function App() {
     return (
@@ -21,6 +22,7 @@ function App() {
                 <DriversTable />
                 <RaceTable />
             </div>
+            <Footer />
         </ContextProvider>
     )
 }
