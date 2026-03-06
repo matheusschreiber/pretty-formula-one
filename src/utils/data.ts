@@ -3,11 +3,55 @@ import type { Driver, Round } from "./types";
 import { getTeamLogo } from "./teams-logos";
 import { getBackgroundImage } from "./circuits-backgrounds";
 
-export async function getTimeToNextRace(): Promise<{ days: number, hours: number, minutes: number }> {
+export async function getTimeToNextRace(): Promise<{ days: number, hours: number, minutes: number, weekendName: string }> {
+    const now = new Date();
+    const year = now.getFullYear();
+    const responseDates = await fetch(`/data/dates_${year}.json`);
+    const rawDates = await responseDates.json() as {name:string, date:string}[];
+    
+    // get next and last events
+    let nextEventDate: Date | null = null;
+    let nextEventName: string = "";
+    let lastEventDate: Date | null = null;
+    let lastEventName: string = "";
+    for(let date of rawDates) {
+        const eventDate = new Date(date["date"]);
+        if (eventDate <= now && (!lastEventDate || eventDate > lastEventDate)) {
+            lastEventDate = eventDate;
+            lastEventName = date["name"];
+        }
+        if (eventDate > now && (!nextEventDate || eventDate < nextEventDate)) {
+            nextEventDate = eventDate;
+            nextEventName = date["name"];
+        }
+    }
+
+    // DEBUG TRICK
+    // lastEventDate = new Date("2026-03-01T00:00:00Z");
+    // nextEventDate = new Date("2026-03-08T10:00:00Z");
+    
+    // Check if is race weekend
+    let lastDiffInSeconds = lastEventDate ? (now.getTime() - lastEventDate.getTime()) / 1000 : 0;
+    let lastDiffInDays = lastDiffInSeconds / (60 * 60 * 24); 
+    if (lastDiffInSeconds > 0 && lastDiffInDays < 4) { 
+        return {
+            days: 0,
+            hours: 0,
+            minutes: 0,
+            weekendName: lastEventName || "Grand Prix",
+        }
+    } 
+    
+    // If not, calculate time to next event
+    let nextDiffInSeconds = nextEventDate ? (nextEventDate.getTime() - now.getTime()) / 1000 : 0;
+    let nextDiffInMinutes = Math.floor(nextDiffInSeconds / 60) % 60
+    let nextDiffInHours = Math.floor(nextDiffInSeconds / 60 / 60) % 24
+    let nextDiffInDays = Math.floor(nextDiffInSeconds / 60 / 60 / 24)
     return {
-        days: 14,
-        hours: 15,
-        minutes: 35,
+        days: nextDiffInDays,
+        hours: nextDiffInHours,
+        minutes: nextDiffInMinutes,
+        weekendName: nextEventName || "Grand Prix",
     }
 }
 
