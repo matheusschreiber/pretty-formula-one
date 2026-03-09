@@ -26,7 +26,7 @@ export default function Footer() {
                     <p className='text-gray-light'>Vite | React</p>
                     <p className='text-gray-light'>FastF1</p>
                 </div>
-                <img className='hidden lg:block ml-auto -mt-15 -mb-28' src={senna} alt="Ayrton Senna" />
+                <img className='max-h-100 aspect-auto hidden lg:block ml-auto -mt-15 -mb-28' src={senna} alt="Ayrton Senna" />
             </div>
             <div className="pl-20 w-full lg:mt-0 mt-10 lg:pr-0 pr-20 pb-10">
                 <div className='mb-4 ml-4 flex items-center'>
@@ -40,7 +40,7 @@ export default function Footer() {
                     className=" hover:underline">Github Repo</a>.
                 </p>
             </div>
-            <img className='lg:hidden block' src={senna} alt="Ayrton Senna" />
+            <img className='max-h-100 aspect-auto lg:hidden block' src={senna} alt="Ayrton Senna" />
         </div>
     )
 } 

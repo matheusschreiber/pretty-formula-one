@@ -3,6 +3,7 @@ import { Context } from "./context-provider";
 import { CarouselSelector } from "./carousel";
 import CircuitMap from "./circuit-map";
 import TelemetryPageCard from "./telemetry-card";
+import HelmetCarousel from "./helmet-carousel";
 
 export default function Misc() {
 
@@ -35,6 +36,8 @@ export default function Misc() {
             )}
 
             <TelemetryPageCard round={round} />
+
+            <HelmetCarousel />
 
             {(!round || rounds.length === 0) ? (
                 <p className="text-center mt-10">Data not found :(</p>

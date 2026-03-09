@@ -42,7 +42,7 @@ export async function getTimeToNextRace(): Promise<{ days: number, hours: number
     // Check if is race weekend
     let lastDiffInSeconds = lastEventDate ? (now.getTime() - lastEventDate.getTime()) / 1000 : 0;
     let lastDiffInDays = lastDiffInSeconds / (60 * 60 * 24); 
-    if (lastDiffInSeconds > 0 && lastDiffInDays < 4) { 
+    if (lastDiffInSeconds > 0 && lastDiffInDays < 3) { 
         return {
             days: 0,
             hours: 0,
