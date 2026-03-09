@@ -1,24 +1,34 @@
 import { useContext } from "react";
-import { Context } from "./context-provider";
+import { Context } from "../context-provider";
 import { CarouselSelector } from "./carousel";
 import CircuitMap from "./circuit-map";
 import TelemetryPageCard from "./telemetry-card";
-import HelmetCarousel from "./helmet-carousel";
+import HelmetCarousel from "./helmet-carousel/helmet-carousel";
 
 export default function Misc() {
 
-    const { year, setYear, round, rounds, roundIdx, setRoundIdx } = useContext(Context)!;
+    const { year, setYear, yearsAvailable, round, rounds, roundIdx, setRoundIdx } = useContext(Context)!;
+
+    function getNextYear(){
+        setYear(yearsAvailable[yearsAvailable.indexOf(year)+1]); 
+        setRoundIdx(1)
+    }
+
+    function getPreviousYear(){
+        setYear(yearsAvailable[yearsAvailable.indexOf(year)-1]); 
+        setRoundIdx(1)
+    }
 
     return (
-        <div>
+        <div className="min-h-screen">
             <div className="flex justify-center items-center gap-10">
                 <CarouselSelector
                     label="Season"
                     value={year}
-                    min={2000}
-                    max={new Date().getFullYear()}
-                    onPrev={() => { setYear(year > 2000 ? year - 1 : year); setRoundIdx(1) }}
-                    onNext={() => { setYear(year < new Date().getFullYear() ? year + 1 : year); setRoundIdx(1) }}
+                    min={yearsAvailable[yearsAvailable.length-1]}
+                    max={yearsAvailable[0]}
+                    onPrev={() => getNextYear()}
+                    onNext={() => getPreviousYear()}
                 />
 
                 <CarouselSelector
@@ -32,12 +42,12 @@ export default function Misc() {
             </div>
 
             {round && rounds.length > 0 && (
-                <CircuitMap round={round} />
+                <>
+                    <CircuitMap round={round} />
+                    <TelemetryPageCard round={round} />
+                    <HelmetCarousel />
+                </>
             )}
-
-            <TelemetryPageCard round={round} />
-
-            <HelmetCarousel />
 
             {(!round || rounds.length === 0) ? (
                 <p className="text-center mt-10">Data not found :(</p>

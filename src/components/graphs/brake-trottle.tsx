@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { TelemetryPoint } from '../../Graphs';
+import type { TelemetryPoint } from '../../pages/Graphs';
 
 interface TelemetryGraphProps {
     telemetryData: TelemetryPoint[];
@@ -25,8 +25,12 @@ export default function BrakeThrottleGraph({ telemetryData, currentTime, width =
         return telemetryData.map((p, i) => `${i === 0 ? 'M' : 'L'} ${getX(p.seconds)} ${getY(p.brake ? 100 : 0)}`).join(' ');
     }, [telemetryData, width, height]);
 
+    if (!telemetryData || telemetryData.length === 0) {
+        return <></>
+    }
+
     return (
-        <div className="p-6 rounded-3xl border border-gray-primary w-[700px] overflow-hidden">
+        <div className="p-6 rounded-3xl border border-gray-primary w-175 overflow-hidden h-fit">
             <div className="flex justify-between mb-4 text-[0.6rem] uppercase tracking-widest text-gray-light">
                 <span className="flex items-center gap-2">
                     <div className="w-3 h-1 bg-green-500 rounded-full" /> Throttle (%)

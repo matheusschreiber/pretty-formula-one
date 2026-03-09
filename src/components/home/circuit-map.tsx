@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { getCircuitTrack } from "../utils/circuits-tracks";
-import type { Round } from "../utils/types";
+import { getCircuitTrack } from "../../utils/circuits-tracks";
+import type { Round } from "../../utils/types";
 
 export default function CircuitMap({ round }: { round: Round | undefined }) {
     if (!round) return <></>

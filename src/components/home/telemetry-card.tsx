@@ -1,6 +1,6 @@
 import { ShipWheel } from "lucide-react";
-import type { Round } from "../utils/types";
-import { getCountryFlagIcon } from "../utils/country-flags";
+import type { Round } from "../../utils/types";
+import { getCountryFlagIcon } from "../../utils/country-flags";
 
 
 export default function TelemetryPageCard({round}: {round: Round | undefined}) {

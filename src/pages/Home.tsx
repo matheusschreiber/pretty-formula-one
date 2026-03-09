@@ -1,15 +1,13 @@
-import Header from './components/header'
-import DriversTable from './components/driverstable'
-import RaceTable from './components/racetable'
+import Header from '../components/header'
+import DriversTable from '../components/home/tables/driverstable'
+import RaceTable from '../components/home/tables/racetable'
 
-import { ContextProvider } from './components/context-provider'
-
-import Misc from './components/misc'
-import Footer from './components/footer'
+import Misc from '../components/home/misc'
+import Footer from '../components/footer'
 
 function App() {
     return (
-        <ContextProvider>
+        <>
             <Header />
             <div className='mt-10 lg:flex lg:gap-5 justify-center hidden'>
                 <DriversTable />
@@ -23,7 +21,7 @@ function App() {
                 <RaceTable />
             </div>
             <Footer />
-        </ContextProvider>
+        </>
     )
 }
 

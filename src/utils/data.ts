@@ -3,6 +3,11 @@ import type { Driver, Round } from "./types";
 import { getTeamLogo } from "./teams-logos";
 import { getBackgroundImage } from "./circuits-backgrounds";
 
+export async function getYearsAvailable(): Promise<number[]> {
+    let years = [2026, 2025, 2024, 2023, 2022, 2021] 
+    return years.sort((a, b) => b - a);
+}
+
 export async function getTimeToNextRace(): Promise<{ days: number, hours: number, minutes: number, weekendName: string }> {
     const now = new Date();
     const year = now.getFullYear();
@@ -69,7 +74,7 @@ export async function getData(
     roundIdx: number,
     drivers: Driver[] = [],
     rounds: Round[] = []
-): Promise<{ drivers: Driver[], round: Round, rounds: Round[] }> {
+): Promise<{ drivers: Driver[], round: Round, rounds: Round[]}> {
 
     // getting drivers if not already fetched
     const responseDrivers = await fetch(`/data/drivers_${year}.json`);
@@ -146,10 +151,14 @@ export async function getData(
     }
     drivers.sort((a, b) => b.points - a.points);
 
-    return { drivers, round: currentRound, rounds };
+    return { drivers, round: currentRound, rounds};
 }
 
-export async function getTelemetryData(): Promise<string> {
+export async function getTelemetryData(driverId: string, year: number, roundIdx: number): Promise<string> {
+
+    // prox passos:
+    // 1. atualizar script para gerar um arquivo de saida com o driver id ao inves de abv
+    // 2. ajustar o script para pegar a corrida pelo idx e nao pelo nome
     const response = await fetch(`/data/telemetry_VER_Monaco_2024.csv`);
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("text/csv")) {

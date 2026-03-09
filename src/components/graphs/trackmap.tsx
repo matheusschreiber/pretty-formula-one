@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { TelemetryPoint } from '../../Graphs';
+import type { TelemetryPoint } from '../../pages/Graphs';
 
 interface TrackMapProps {
     telemetryData: TelemetryPoint[];
@@ -47,6 +47,12 @@ export default function TrackMap({ telemetryData, currentTime }: TrackMapProps) 
     const width = bounds.maxX - bounds.minX;
     const height = bounds.maxY - bounds.minY;
     const padding = Math.max(width, height) * 0.1;
+
+    if (!telemetryData || telemetryData.length === 0) {
+        return (
+            <p>No data to be shown.</p>
+        )
+    }
 
     return (
         <div>

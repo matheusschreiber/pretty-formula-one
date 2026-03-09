@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { Context } from './context-provider';
+import { Context } from '../../context-provider';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 

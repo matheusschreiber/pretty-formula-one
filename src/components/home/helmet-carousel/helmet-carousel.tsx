@@ -4,11 +4,11 @@ import { Environment, Text } from '@react-three/drei'
 import * as THREE from 'three'
 import ProfessionalHelmet from "./professional-helmet"
 
-import font from '../assets/Formula1-Regular_web_0.ttf'
+import font from '../../../assets/Formula1-Regular_web_0.ttf'
 
-import leclerc from '../assets/textures/leclerc.png'
-import hamilton from '../assets/textures/hamilton.png'
-import verstappen from '../assets/textures/verstappen.png'
+import leclerc from '../../../assets/textures/leclerc.png'
+import hamilton from '../../../assets/textures/hamilton.png'
+import verstappen from '../../../assets/textures/verstappen.png'
 
 const drivers = [
   { id: 'leclerc', tex: leclerc, name: 'Charles Leclerc' },

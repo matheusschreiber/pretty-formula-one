@@ -1,6 +1,6 @@
 
 import { useContext } from 'react';
-import { Context } from './context-provider';
+import { Context } from '../../context-provider';
 
 import { motion, type Variants } from 'framer-motion';
 
