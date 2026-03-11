@@ -7,14 +7,18 @@ import { useTelemetryTimer } from "../hooks/useTelemetryTimer";
 import Header from "../components/header";
 import CustomSelect from "../components/graphs/select";
 import { Context } from "../components/context-provider";
+import RPMGraph from "../components/graphs/rpm";
+import ElevationGraph from "../components/graphs/elevation";
 
 export interface TelemetryPoint {
     seconds: number;
     x: number;
     y: number;
+    z: number;
     speed: number;
     throttle: number;
     brake: boolean;
+    rpm: number;
 }
 
 export default function Graphs() {
@@ -44,6 +48,8 @@ export default function Graphs() {
                     seconds: parseFloat(col[0]),
                     x: parseFloat(col[1]),
                     y: parseFloat(col[2]),
+                    z: parseFloat(col[3]),
+                    rpm: parseFloat(col[4]),
                     speed: parseFloat(col[5]),
                     throttle: parseFloat(col[7]),
                     brake: col[8] == 'True',
@@ -71,10 +77,12 @@ export default function Graphs() {
 
             <div className="w-full flex justify-center p-8">
                 <TrackMap telemetryData={telemetryData} currentTime={currentTime} />
-                <div>
+                <div className="flex flex-col gap-10">
                     <BrakeThrottleGraph telemetryData={telemetryData} currentTime={currentTime} />
-                    <BrakeThrottleGraph telemetryData={telemetryData} currentTime={currentTime} />
-                    <BrakeThrottleGraph telemetryData={telemetryData} currentTime={currentTime} />
+                    <div className="flex gap-10">
+                        <RPMGraph telemetryData={telemetryData} currentTime={currentTime} />
+                        <ElevationGraph telemetryData={telemetryData} currentTime={currentTime} />
+                    </div>
                 </div>
             </div>
         </>

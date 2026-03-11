@@ -26,7 +26,6 @@ export default function TrackMap({ telemetryData, currentTime }: TrackMapProps) 
         };
     }, [telemetryData, currentTime]);
 
-    // 2. Formatting the time string
     const formattedTime = useMemo(() => {
         const minutes = Math.floor(currentTime / 60);
         const seconds = (currentTime % 60).toFixed(2);
