@@ -1,15 +1,21 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 
 interface Props {
     options: any[];
     onSelect: (value: any) => void;
+    selectedOption?: any | null;
 }
 
-export default function CustomSelect({ onSelect, options }: Props) {
+export default function CustomSelect({ onSelect, options, selectedOption }: Props) {
     const [isOpen, setIsOpen] = useState(false);
     const [selected, setSelected] = useState({"id": "", "name": "Select an option"});
+
+    useEffect(()=>{
+        if (!selectedOption) return;
+        setSelected(selectedOption)
+    }, [selectedOption])
 
     return (
         <div className="relative w-64 font-sans">

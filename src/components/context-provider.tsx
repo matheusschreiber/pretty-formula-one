@@ -27,7 +27,7 @@ export const ContextProvider = ({ children }: { children: ReactNode }) => {
     const [rounds, setRounds] = useState<Round[]>([]);
 
     const [yearsAvailable, setYearsAvailable] = useState<number[]>([]);
-    const [year, setYear] = useState<number>(0);
+    const [year, setYear] = useState<number>(new Date().getFullYear());
     const [roundIdx, setRoundIdx] = useState<number>(1);
 
     useEffect(()=>{

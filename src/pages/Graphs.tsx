@@ -33,9 +33,9 @@ export default function Graphs() {
     const context = useContext(Context)!;
     if (!context) return <></>
     const { 
-        drivers, rounds, setYear, 
+        drivers, rounds, round, year, setYear, 
         yearsAvailable, roundIdx, setRoundIdx
-    } = context;
+    } = context;    
 
     useEffect(() => {
         if (!driverId || !roundIdx) return;
@@ -66,13 +66,20 @@ export default function Graphs() {
             <div className="w-full flex items-center my-10 justify-center gap-5">
                 <CustomSelect 
                     onSelect={(value) => setYear(value)} 
-                    options={yearsAvailable.map((a) => ({ id: a.toString(), name: a.toString() }))} />
-                <CustomSelect 
-                    onSelect={(value) => setDriverId(value)} 
-                    options={drivers.sort((a, b) => a.name.localeCompare(b.name))} />
-                <CustomSelect 
-                    onSelect={(value) => setRoundIdx(value)} 
-                    options={rounds.sort((a, b) => a.name.localeCompare(b.name))} />
+                    options={yearsAvailable.map((a) => ({ id: a.toString(), name: a.toString() }))} 
+                    selectedOption={{ id: year.toString(), name: year.toString() }} />
+                {drivers.length > 0 && (
+                    <CustomSelect 
+                        onSelect={(value) => setDriverId(value)} 
+                        options={drivers.sort((a, b) => a.name.localeCompare(b.name))} 
+                        selectedOption={{ id: drivers[0].id, name: drivers[0].name }} />
+                )}
+                {round && (
+                    <CustomSelect 
+                        onSelect={(value) => setRoundIdx(value)} 
+                        options={rounds.sort((a, b) => a.name.localeCompare(b.name))} 
+                        selectedOption={{ id: round.index, name: round.name }}/>
+                )}
             </div>
 
             <div className="w-full flex justify-center p-8">

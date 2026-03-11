@@ -1,12 +1,13 @@
 import { ShipWheel } from "lucide-react";
 import type { Round } from "../../utils/types";
 import { getCountryFlagIcon } from "../../utils/country-flags";
+import { Link } from "react-router-dom";
 
 
 export default function TelemetryPageCard({round}: {round: Round | undefined}) {
 
     return (
-        <a href="/graphs">
+        <Link to="/graphs">
             <div className="group lg:w-125 lg:mb-0 mb-5 lg:mx-0 mx-5 border border-gray-primary overflow-hidden rounded-4xl bg-zinc-950 
                 bg-no-repeat bg-cover bg-center hover:border-primary transition-colors cursor-pointer"
                 style={{ backgroundImage: `url(${round?.backgroundImage})` }}>
@@ -39,6 +40,6 @@ export default function TelemetryPageCard({round}: {round: Round | undefined}) {
                     </p>
                 </div>
             </div>
-        </a>
+        </Link>
     )
 }

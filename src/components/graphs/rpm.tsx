@@ -6,7 +6,7 @@ interface RPMGraphProps {
     currentTime: number;
 }
 
-export default function RPMSingleBar({
+export default function RPMGraph({
     telemetryData,
     currentTime,
 }: RPMGraphProps) {
