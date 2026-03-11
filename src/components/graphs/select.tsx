@@ -9,9 +9,7 @@ interface Props {
 
 export default function CustomSelect({ onSelect, options }: Props) {
     const [isOpen, setIsOpen] = useState(false);
-    const [selected, setSelected] = useState(
-        {"id": "", "name": "Select an option"}
-    );
+    const [selected, setSelected] = useState({"id": "", "name": "Select an option"});
 
     return (
         <div className="relative w-64 font-sans">

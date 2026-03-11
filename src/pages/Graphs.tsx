@@ -28,10 +28,15 @@ export default function Graphs() {
 
     const context = useContext(Context)!;
     if (!context) return <></>
-    const { drivers, rounds, year, setYear, yearsAvailable, roundIdx, setRoundIdx} = context;
+    const { 
+        drivers, rounds, setYear, 
+        yearsAvailable, roundIdx, setRoundIdx
+    } = context;
 
     useEffect(() => {
-        getTelemetryData(driverId, year, roundIdx).then((rawCsv: string) => {
+        if (!driverId || !roundIdx) return;
+
+        getTelemetryData(driverId, roundIdx).then((rawCsv: string) => {
             const rows = rawCsv.trim().split('\n').slice(1);
             const parsedData = rows.map(row => {
                 const col = row.split(',');
@@ -46,12 +51,12 @@ export default function Graphs() {
             });
             setTelemetryData(parsedData);
         });
-    }, [driverId, year, roundIdx]);
+    }, [driverId, roundIdx]);
 
     return (
         <>
             <Header />
-        
+
             <div className="w-full flex items-center my-10 justify-center gap-5">
                 <CustomSelect 
                     onSelect={(value) => setYear(value)} 

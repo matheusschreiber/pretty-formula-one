@@ -69,34 +69,42 @@ export async function getTimeToNextRace(): Promise<{ days: number, hours: number
     }
 }
 
+async function getDrivers(year:number): Promise<Driver[]> {
+    const responseDrivers = await fetch(`/data/drivers_${year}.json`);
+    const contentType = responseDrivers.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+        return [];
+    }
+    const rawDrivers = await responseDrivers.json() as Driver[];
+    return rawDrivers
+}
+
 export async function getData(
     year: number, 
     roundIdx: number,
     drivers: Driver[] = [],
-    rounds: Round[] = []
+    rounds: Round[] = [],
 ): Promise<{ drivers: Driver[], round: Round, rounds: Round[]}> {
 
     // getting drivers if not already fetched
-    const responseDrivers = await fetch(`/data/drivers_${year}.json`);
-    let contentType = responseDrivers.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-        return {
-            drivers: [],
-            round: {} as Round,
-            rounds: [],
-        };
-    }
-    const rawDrivers = await responseDrivers.json() as Driver[];
+    const rawDrivers = await getDrivers(year);
     drivers = rawDrivers.map((driver) => ({
         ...driver,
         points: 0,
         recentProfit: 0,
         teamLogo: getTeamLogo(driver.team),
     }));
+    if (drivers.length === 0) {
+        return {
+            drivers: [],
+            round: {} as Round,
+            rounds: [],
+        };
+    }
 
     // getting rounds if not already fetched
     const responseRounds = await fetch(`/data/rounds_${year}.json`);
-    contentType = responseRounds.headers.get("content-type");
+    const contentType = responseRounds.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
         return {
             drivers: [],
@@ -154,12 +162,8 @@ export async function getData(
     return { drivers, round: currentRound, rounds};
 }
 
-export async function getTelemetryData(driverId: string, year: number, roundIdx: number): Promise<string> {
-
-    // prox passos:
-    // 1. atualizar script para gerar um arquivo de saida com o driver id ao inves de abv
-    // 2. ajustar o script para pegar a corrida pelo idx e nao pelo nome
-    const response = await fetch(`/data/telemetry_VER_Monaco_2024.csv`);
+export async function getTelemetryData(driverId: string, roundIdx: number): Promise<string> {
+    const response = await fetch(`/data/telemetry_${driverId}_${roundIdx}.csv`);
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("text/csv")) {
         return "";

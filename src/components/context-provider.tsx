@@ -30,19 +30,17 @@ export const ContextProvider = ({ children }: { children: ReactNode }) => {
     const [year, setYear] = useState<number>(0);
     const [roundIdx, setRoundIdx] = useState<number>(1);
 
+    useEffect(()=>{
+        getYearsAvailable().then((years) => {
+            setYearsAvailable(years);
+        });
+    }, []);
+
     useEffect(() => {
         getData(year, roundIdx, drivers, rounds).then((data) => {
             setRound(data.round)
             setRounds(data.rounds)
             setDrivers(data.drivers)
-        }).then(()=>{
-            getYearsAvailable().then((years) => {
-                setYearsAvailable(years)
-                if (!years.includes(year)) {
-                    setYear(years[0]);
-                    setRoundIdx(1);
-                }
-            });
         })
     }, [year, roundIdx])
 
