@@ -8,7 +8,8 @@ import Header from "../components/header";
 import CustomSelect from "../components/graphs/select";
 import { Context } from "../components/context-provider";
 import RPMGraph from "../components/graphs/rpm";
-import ElevationGraph from "../components/graphs/elevation";
+import AltitudeGraph from "../components/graphs/altitude";
+import GearGraph from "../components/graphs/gear";
 
 export interface TelemetryPoint {
     seconds: number;
@@ -16,6 +17,7 @@ export interface TelemetryPoint {
     y: number;
     z: number;
     speed: number;
+    gear: number;
     throttle: number;
     brake: boolean;
     rpm: number;
@@ -51,6 +53,7 @@ export default function Graphs() {
                     z: parseFloat(col[3]),
                     rpm: parseFloat(col[4]),
                     speed: parseFloat(col[5]),
+                    gear: parseInt(col[6]),
                     throttle: parseFloat(col[7]),
                     brake: col[8] == 'True',
                 };
@@ -88,7 +91,8 @@ export default function Graphs() {
                     <BrakeThrottleGraph telemetryData={telemetryData} currentTime={currentTime} />
                     <div className="flex gap-10">
                         <RPMGraph telemetryData={telemetryData} currentTime={currentTime} />
-                        <ElevationGraph telemetryData={telemetryData} currentTime={currentTime} />
+                        <AltitudeGraph telemetryData={telemetryData} currentTime={currentTime} />
+                        <GearGraph telemetryData={telemetryData} currentTime={currentTime} />
                     </div>
                 </div>
             </div>

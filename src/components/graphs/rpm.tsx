@@ -64,7 +64,8 @@ export default function RPMGraph({
                         textAnchor="middle"
                         dominantBaseline="middle"
                     >
-                        {Math.round(rpm)}
+                        {Math.floor(rpm / 1000)}
+                        <tspan dx="6">{Math.round(rpm%1000).toString().padStart(3, '0')}</tspan>
                     </text>
                 </svg>
             </div>

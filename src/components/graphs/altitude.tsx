@@ -1,17 +1,17 @@
 import { useMemo } from "react";
 import type { TelemetryPoint } from "../../pages/Graphs";
 
-interface ElevationGraphProps {
+interface AltitudeGraphProps {
     telemetryData: TelemetryPoint[];
     currentTime: number;
     windowDuration?: number;
 }
 
-export default function ElevationGraph({
+export default function AltitudeGraph({
     telemetryData,
     currentTime,
     windowDuration = 10,
-}: ElevationGraphProps) {
+}: AltitudeGraphProps) {
 
     const INTERNAL_WIDTH = 700; 
     const INTERNAL_HEIGHT = 200;
@@ -33,7 +33,7 @@ export default function ElevationGraph({
     const getX = (s: number) => ((s - startTime) / windowDuration) * INTERNAL_WIDTH;
     const getY = (v: number) => INTERNAL_HEIGHT - ((v - minZ) / rangeZ) * INTERNAL_HEIGHT;
 
-    const elevationPath = useMemo(() => {
+    const altitudePath = useMemo(() => {
         if (visibleData.length === 0) return '';
         return visibleData.map((p, i) =>
             `${i === 0 ? 'M' : 'L'} ${getX(p.seconds)} ${getY(p.z)}`
@@ -45,10 +45,10 @@ export default function ElevationGraph({
     const currentZ = visibleData.length > 0 ? visibleData[visibleData.length - 1].z : 0;
 
     return (
-        <div className="p-6 rounded-3xl border border-gray-primary overflow-hidden h-64 w-135">
+        <div className="p-6 rounded-3xl border border-gray-primary overflow-hidden h-64 w-95">
             <div className="flex justify-between mb-4 text-[0.6rem] uppercase tracking-widest text-gray-light">
                 <span className="flex items-center gap-2">
-                    <div className="w-3 h-1 bg-blue-500 rounded-full" /> Elevation (Rel)
+                    <div className="w-3 h-1 bg-blue-500 rounded-full" /> Altitude (Rel)
                 </span>
                 <span className="text-white font-mono">
                     Alt: {currentZ.toFixed(1)}
@@ -64,7 +64,7 @@ export default function ElevationGraph({
                     />
 
                     <path
-                        d={elevationPath}
+                        d={altitudePath}
                         fill="none"
                         stroke="#3b82f6"
                         strokeWidth={2.5}
