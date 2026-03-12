@@ -6,7 +6,7 @@ export default function CircuitMap({ round }: { round: Round | undefined }) {
     if (!round) return <></>
 
     return (
-        <div className="flex flex-col justify-center items-center text-center mb-15">
+        <div className="flex flex-col justify-center items-center text-center">
             <div className="relative w-full max-w-2xl h-50 flex items-center justify-center group">
                 <div className="relative w-96 h-full flex items-center justify-center">
                     <AnimatePresence mode="wait">

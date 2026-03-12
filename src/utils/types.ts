@@ -1,5 +1,5 @@
 export type Driver = {
-    id: number,
+    id: string,
     team: string,
     abbreviation: string,
     name: string,
@@ -10,10 +10,16 @@ export type Driver = {
 
 export type RaceResult = {
     id: number,
-    driver_id: number,
+    driver_id: string,
     driver?: Driver,
     racePoints: number,
     sprintPoints: number,
+    tyre_strat: {
+        lapStart: number,
+        lapEnd: number,
+        compound: TyreType,
+        stint: number
+    }[],
 }
 
 export type Round = {
@@ -27,3 +33,5 @@ export type Round = {
     year: number,
     results: RaceResult[],
 }
+
+export type TyreType = 'SOFT' | 'MEDIUM' | 'HARD' | 'INTERMEDIATE' | 'WET';

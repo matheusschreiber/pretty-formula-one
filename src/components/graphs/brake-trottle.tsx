@@ -52,7 +52,7 @@ export default function BrakeThrottleGraph({
                     {startTime.toFixed(1)}s
                 </span>
                 <span className="flex items-center gap-2">
-                    <div className="w-3 h-1 bg-red-600 rounded-full" /> Brake
+                    <div className="w-3 h-1 bg-red-600 rounded-full" /> Brake (On/Off)
                 </span>
             </div>
 

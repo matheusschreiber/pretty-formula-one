@@ -48,7 +48,7 @@ export default function Header() {
                 <div className='flex items-center gap-6 bg-black p-3 px-8 rounded-2xl border border-gray-primary shadow-2xl mt-8'>
 
                     <div className='flex flex-col items-center '>
-                        <p className='text-[.7rem]'>{weekendName} WEEKEND</p>
+                        <p className='text-[.7rem]'>{weekendName} WEEKEND {new Date().getFullYear()}</p>
                         <div className='flex gap-4 mt-1 pt-1 items-center border-t border-t-gray-light'>
                             <div className='flex flex-col items-center'>
                                 <p className='text-xl font-mono'>{days.toString().padStart(2, '0')}</p>

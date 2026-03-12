@@ -6,6 +6,9 @@ interface ContextType {
     drivers: Driver[];
     setDrivers: (drivers: Driver[]) => void;
 
+    selectedDriver: Driver | undefined,
+    setSelectedDriver: (driver: Driver) => void;
+
     round: Round | undefined;
     setRound: (round: Round) => void;
 
@@ -23,6 +26,7 @@ export const Context = createContext<ContextType | undefined>(undefined);
 
 export const ContextProvider = ({ children }: { children: ReactNode }) => {
     const [drivers, setDrivers] = useState<Driver[]>([]);
+    const [selectedDriver, setSelectedDriver] = useState<Driver>();
     const [round, setRound] = useState<Round | undefined>();
     const [rounds, setRounds] = useState<Round[]>([]);
 
@@ -31,9 +35,11 @@ export const ContextProvider = ({ children }: { children: ReactNode }) => {
     const [roundIdx, setRoundIdx] = useState<number>(1);
 
     useEffect(()=>{
-        getYearsAvailable().then((years) => {
-            setYearsAvailable(years);
-        });
+        if (!yearsAvailable || yearsAvailable.length == 0) {
+            getYearsAvailable().then((years) => {
+                setYearsAvailable(years);
+            });
+        }
     }, []);
 
     useEffect(() => {
@@ -45,7 +51,12 @@ export const ContextProvider = ({ children }: { children: ReactNode }) => {
     }, [year, roundIdx])
 
     return (
-        <Context.Provider value={{ drivers, setDrivers, round, setRound, year, setYear, yearsAvailable, roundIdx, setRoundIdx, rounds}}>
+        <Context.Provider value={{ 
+            drivers, setDrivers, round,
+            selectedDriver, setSelectedDriver, 
+            setRound, year, setYear, 
+            yearsAvailable, roundIdx, 
+            setRoundIdx, rounds}}>
             {children}
         </Context.Provider>
     );

@@ -13,8 +13,13 @@ export default function CustomSelect({ onSelect, options, selectedOption }: Prop
     const [selected, setSelected] = useState({"id": "", "name": "Select an option"});
 
     useEffect(()=>{
-        if (!selectedOption) return;
-        setSelected(selectedOption)
+        if (options.length == 0) return;
+
+        if (!selectedOption || !selectedOption.id) {
+            setSelected(options[0]);
+        } else {
+            setSelected(selectedOption)
+        }
     }, [selectedOption])
 
     return (
@@ -28,7 +33,6 @@ export default function CustomSelect({ onSelect, options, selectedOption }: Prop
             text-white bg-zinc-900 border border-gray-primary rounded-lg shadow-xl"
             >
                 <span className="flex items-center gap-2">
-                    <div className="w-2 h-4" style={{ backgroundColor: '#fff'}} />
                     {selected?.name}
                 </span>
                 <motion.div animate={{ rotate: isOpen ? 180 : 0 }}>
@@ -57,7 +61,6 @@ export default function CustomSelect({ onSelect, options, selectedOption }: Prop
                                 }}
                                 className="flex items-center gap-3 px-3 py-2 text-sm text-gray-300 cursor-pointer rounded-md"
                             >
-                                <div className="w-1 h-3" style={{ backgroundColor: '#fff'}} />
                                 {option?.name}
                             </motion.li>
                         ))}

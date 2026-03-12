@@ -158,7 +158,6 @@ export async function getData(
         });
     }
     drivers.sort((a, b) => b.points - a.points);
-
     return { drivers, round: currentRound, rounds};
 }
 

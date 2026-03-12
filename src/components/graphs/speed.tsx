@@ -52,7 +52,7 @@ export default function SpeedGraph({ telemetryData, currentTime }: TelemetryGrap
     if (!telemetryData || telemetryData.length === 0) return null;
 
     return (
-        <div className="p-10 rounded-3xl border border-gray-primary w-175 overflow-hidden h-fit">
+        <div className="p-10 rounded-3xl border border-gray-primary w-135 overflow-hidden h-64">
             <div className="flex justify-between mb-8 text-[0.6rem] uppercase tracking-widest text-gray-light">
                 <span className="flex items-center gap-2">
                     <div className="w-3 h-1 bg-yellow-500 rounded-full" /> Speed (km/h)
