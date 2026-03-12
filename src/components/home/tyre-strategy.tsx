@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import type { Round } from "../../utils/types";
 
 export default function TyreStrategyLineChart({ round }: { round: Round }) {
