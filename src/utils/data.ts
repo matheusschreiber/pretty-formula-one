@@ -4,8 +4,26 @@ import { getTeamLogo } from "./teams-logos";
 import { getBackgroundImage } from "./circuits-backgrounds";
 
 export async function getYearsAvailable(): Promise<number[]> {
-    let years = [2026, 2025, 2024, 2023, 2022, 2021] 
-    return years.sort((a, b) => b - a);
+    const years = [2024, 2023, 2022, 2021] 
+    let availableYears: number[] = [];
+    for (let year of years) {
+        const responseDrivers = await fetch(`/data/drivers_${year}.json`);
+        const contentTypeDrivers = responseDrivers.headers.get("content-type");
+        if (!contentTypeDrivers || !contentTypeDrivers.includes("application/json")) {
+            availableYears = availableYears.filter(y => y !== year);
+            continue
+        } 
+
+        const responseRounds = await fetch(`/data/rounds_${year}.json`);
+        const contentTypeRounds = responseRounds.headers.get("content-type");
+        if (!contentTypeRounds || !contentTypeRounds.includes("application/json")) {
+            availableYears = availableYears.filter(y => y !== year);
+            continue
+        }
+
+        availableYears.push(year);
+    }
+    return availableYears.sort((a, b) => b - a);
 }
 
 export async function getTimeToNextRace(): Promise<{ days: number, hours: number, minutes: number, weekendName: string }> {
@@ -161,7 +179,8 @@ export async function getData(
     return { drivers, round: currentRound, rounds};
 }
 
-export async function getTelemetryData(driverId: string, roundIdx: number): Promise<string> {
+export async function getTelemetryData(driverId: string|undefined, roundIdx: number|undefined): Promise<string> {
+    if (!driverId || !roundIdx) return "";
     const response = await fetch(`/data/telemetry_${driverId}_${roundIdx}.csv`);
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("text/csv")) {

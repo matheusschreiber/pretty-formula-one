@@ -12,6 +12,7 @@ import AltitudeGraph from "../components/graphs/altitude";
 import GearGraph from "../components/graphs/gear";
 import TyreGraph from "../components/graphs/tyre";
 import SpeedGraph from "../components/graphs/speed";
+import type { Driver } from "../utils/types";
 
 export interface TelemetryPoint {
     seconds: number;
@@ -34,23 +35,24 @@ export default function Graphs() {
     const maxTime = telemetryData.length > 0 ? telemetryData[telemetryData.length - 1].seconds : 0;
     const currentTime = useTelemetryTimer(maxTime);
 
-    const [driverId, setDriverId] = useState<string>("");
-    useEffect(() => {
-        const found = drivers.find(d => d.id === driverId)
-        if (found) setSelectedDriver(found);
-    }, [driverId])
-
     const context = useContext(Context)!;
     if (!context) return <></>
     const { 
         drivers, rounds, round, year, setYear, 
         yearsAvailable, roundIdx, setRoundIdx,
         selectedDriver, setSelectedDriver
-    } = context;    
+    } = context; 
 
     useEffect(() => {
-        if (!selectedDriver || !roundIdx) return;
-        getTelemetryData(selectedDriver.id, roundIdx).then((rawCsv: string) => {
+        console.log({year, selectedDriver, roundIdx})
+        if (drivers.length == 0) {
+            setTelemetryData([]);
+            return;
+        }
+        if (!selectedDriver) setSelectedDriver(drivers[0]);
+        if (!roundIdx) setRoundIdx(rounds[0].index);
+        
+        getTelemetryData(selectedDriver?.id, roundIdx).then((rawCsv: string) => {
             const rows = rawCsv.trim().split('\n').slice(1);
             const parsedData = rows.map(row => {
                 const col = row.split(',');
@@ -70,12 +72,16 @@ export default function Graphs() {
             });
             setTelemetryData(parsedData);
         });
-    }, [year, roundIdx]);
+    }, [year, selectedDriver, roundIdx]);
 
     function formatElapsedTime(seconds: number): string {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
         return `${mins}:${secs.toFixed(3).padStart(6, '0')}`;
+    }
+
+    function getDriverById(id: string): Driver {
+        return drivers.find(d => d.id === id) || drivers[0];
     }
 
     return (
@@ -84,12 +90,12 @@ export default function Graphs() {
 
             <div className="w-full flex items-center my-10 justify-center gap-5">
                 <CustomSelect 
-                    onSelect={(value) => setYear(value)} 
+                    onSelect={(value) => setYear(parseInt(value))} 
                     options={yearsAvailable.map((a) => ({ id: a.toString(), name: a.toString() }))} 
                     selectedOption={{ id: year.toString(), name: year.toString() }} />
                 {drivers.length > 0 && (
                     <CustomSelect 
-                        onSelect={(value) => setDriverId(value)} 
+                        onSelect={(value) => setSelectedDriver(getDriverById(value))} 
                         options={drivers.sort((a, b) => a.name.localeCompare(b.name))} 
                         selectedOption={{ id: selectedDriver?.id, name: selectedDriver?.name }} />
                 )}
@@ -103,8 +109,9 @@ export default function Graphs() {
 
             {telemetryData && telemetryData.length > 0 && (
                 <p className="text-center w-full text-gray-light">
-                    Showing the fastest Lap of {selectedDriver?.name} 
-                    <strong className="text-red-500 ml-5">
+                    Showing the fastest Lap of <strong>{selectedDriver?.name}</strong> on the
+                    <strong> {round?.name}</strong>, with a time of {" "}
+                    <strong className="text-red-500">
                         {formatElapsedTime(telemetryData[telemetryData.length - 1].seconds)}
                     </strong>
                 </p>

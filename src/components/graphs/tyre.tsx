@@ -26,11 +26,12 @@ export default function TyreGraph({ telemetryData }: TyreGraphProps) {
     }, [compound]);
 
     useEffect(()=>{
+        setCompound("")
         if (!telemetryData || telemetryData.length == 0) return;
         setCompound(telemetryData[0].compound)
     }, [telemetryData])
     
-    if (!config) return <></>
+    if (!config || !compound) return <></>
 
     return (
         <div className="p-4 rounded-3xl border border-gray-primary flex flex-col items-center justify-center gap-4 w-30 h-64 overflow-hidden">

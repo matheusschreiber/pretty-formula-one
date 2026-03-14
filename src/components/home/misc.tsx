@@ -42,10 +42,10 @@ export default function Misc() {
             </div>
 
             {round && rounds.length > 0 && (
-                <div className="flex flex-col justify-between gap-5">
-                    <CircuitMap round={round} />
+                <div className="flex flex-col justify-between gap-5 my-5">
                     <TelemetryPageCard round={round} />
                     <TyreStrategyCard round={round} />
+                    <CircuitMap round={round} />
                 </div>
             )}
             

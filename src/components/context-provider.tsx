@@ -31,13 +31,14 @@ export const ContextProvider = ({ children }: { children: ReactNode }) => {
     const [rounds, setRounds] = useState<Round[]>([]);
 
     const [yearsAvailable, setYearsAvailable] = useState<number[]>([]);
-    const [year, setYear] = useState<number>(new Date().getFullYear());
+    const [year, setYear] = useState<number>(0);
     const [roundIdx, setRoundIdx] = useState<number>(1);
 
     useEffect(()=>{
         if (!yearsAvailable || yearsAvailable.length == 0) {
             getYearsAvailable().then((years) => {
                 setYearsAvailable(years);
+                setYear(years[0]);
             });
         }
     }, []);

@@ -14,20 +14,21 @@ export default function TelemetryPageCard({round}: {round: Round | undefined}) {
                 style={{ backgroundImage: `url(${round?.backgroundImage})` }}>
 
                 <div style={{background: "linear-gradient(180deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%)"}}
-                    className="pb-10 group-hover:pl-5 transition-all duration-200">
-                    <div className="px-10 pt-10 text-gray-light flex items-center gap-2">
-                        <ShipWheel className="inline-block" />
-                        <p className="text-sm font-bold">Telemetry Data</p>
-                    </div>
-                    <div className="flex items-center px-10 mt-2">
+                    className="group-hover:pl-5 transition-all duration-200 flex items-center justify-center gap-10 pt-4 pb-4">
+                    <div className="flex items-center">
                         {round && round.country && (
                             <img src={getCountryFlagIcon(round.country)} alt={round.country} className="h-5 mr-2" /> 
                         )}
                         <p className="text-3xl">{round?.country}</p>
                     </div>
+                    
+                    <div className="text-gray-light flex items-center">
+                        <ShipWheel className="inline-block" />
+                        <p className="text-sm font-bold">Telemetry Data</p>
+                    </div>
                 </div>
 
-                <div className="pt-20 pb-5 w-full" 
+                <div className="pb-5 w-full" 
                     style={{background: "linear-gradient(0deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%)"}}>
                     <div className="pl-2 mx-10 w-fit border-l-4 border-primary
                         group-hover:ml-15 transition-all duration-400">
