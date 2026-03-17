@@ -54,7 +54,7 @@ export default function TrackMap({ telemetryData, currentTime }: TrackMapProps) 
     }
 
     return (
-        <div>
+        <div className='max-w-175'>
             <div className="relative w-full h-125">
                 <svg
                     viewBox={`${bounds.minX - padding} ${bounds.minY - padding} ${width + padding * 2} ${height + padding * 2}`}

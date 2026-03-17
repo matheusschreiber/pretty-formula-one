@@ -95,10 +95,10 @@ export default function TyreStrategyLineChart({ round }: { round: Round }) {
                                     return (
                                         <g key={index} className="group/stint">
                                             <line 
-                                                x1={xStart} y1={y} 
+                                                x1={xStart + 10} y1={y} 
                                                 x2={xEnd} y2={y} 
                                                 stroke={color} 
-                                                strokeWidth="4" 
+                                                strokeWidth="10" 
                                                 strokeLinecap="round"
                                                 className="transition-all cursor-crosshair"
                                             />

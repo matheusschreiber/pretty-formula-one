@@ -13,6 +13,7 @@ import GearGraph from "../components/graphs/gear";
 import TyreGraph from "../components/graphs/tyre";
 import SpeedGraph from "../components/graphs/speed";
 import type { Driver } from "../utils/types";
+import Footer from "../components/footer";
 
 export interface TelemetryPoint {
     seconds: number;
@@ -134,6 +135,7 @@ export default function Graphs() {
             </div>
 
            
+           <Footer />
         </div>
     )
 }

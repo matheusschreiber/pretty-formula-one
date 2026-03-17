@@ -3,18 +3,20 @@ import type { Driver, Round } from "./types";
 import { getTeamLogo } from "./teams-logos";
 import { getBackgroundImage } from "./circuits-backgrounds";
 
+const BLOB_URL = import.meta.env.VITE_BLOB_VERCEL_URL as string;
+
 export async function getYearsAvailable(): Promise<number[]> {
     const years = [2024, 2023, 2022, 2021] 
     let availableYears: number[] = [];
     for (let year of years) {
-        const responseDrivers = await fetch(`/data/drivers_${year}.json`);
+        const responseDrivers = await fetch(`${BLOB_URL}/${year}/drivers_${year}.json`);
         const contentTypeDrivers = responseDrivers.headers.get("content-type");
         if (!contentTypeDrivers || !contentTypeDrivers.includes("application/json")) {
             availableYears = availableYears.filter(y => y !== year);
             continue
         } 
 
-        const responseRounds = await fetch(`/data/rounds_${year}.json`);
+        const responseRounds = await fetch(`${BLOB_URL}/${year}/rounds_${year}.json`);
         const contentTypeRounds = responseRounds.headers.get("content-type");
         if (!contentTypeRounds || !contentTypeRounds.includes("application/json")) {
             availableYears = availableYears.filter(y => y !== year);
@@ -29,16 +31,7 @@ export async function getYearsAvailable(): Promise<number[]> {
 export async function getTimeToNextRace(): Promise<{ days: number, hours: number, minutes: number, weekendName: string }> {
     const now = new Date();
     const year = now.getFullYear();
-    const responseDates = await fetch(`/data/dates_${year}.json`);
-    const contentType = responseDates.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-        return {
-            days: 0,
-            hours: 0,
-            minutes: 0,
-            weekendName: "Grand Prix",
-        };
-    }
+    const responseDates = await fetch(`${BLOB_URL}/${year}/dates_${year}.json`);
     const rawDates = await responseDates.json() as {name:string, date:string}[];
     
     // get next and last events
@@ -88,7 +81,7 @@ export async function getTimeToNextRace(): Promise<{ days: number, hours: number
 }
 
 async function getDrivers(year:number): Promise<Driver[]> {
-    const responseDrivers = await fetch(`/data/drivers_${year}.json`);
+    const responseDrivers = await fetch(`${BLOB_URL}/${year}/drivers_${year}.json`);
     const contentType = responseDrivers.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
         return [];
@@ -121,7 +114,7 @@ export async function getData(
     }
 
     // getting rounds if not already fetched
-    const responseRounds = await fetch(`/data/rounds_${year}.json`);
+    const responseRounds = await fetch(`${BLOB_URL}/${year}/rounds_${year}.json`);
     const contentType = responseRounds.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
         return {
@@ -181,7 +174,8 @@ export async function getData(
 
 export async function getTelemetryData(driverId: string|undefined, roundIdx: number|undefined): Promise<string> {
     if (!driverId || !roundIdx) return "";
-    const response = await fetch(`/data/telemetry_${driverId}_${roundIdx}.csv`);
+    const year = driverId.split("_").slice(-1)[0];
+    const response = await fetch(`${BLOB_URL}/${year}/telemetry_${driverId}_${roundIdx}.csv`);
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("text/csv")) {
         return "";
