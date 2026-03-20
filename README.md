@@ -42,11 +42,11 @@ Cons: High Infrastructure Complexity. Moving away from the "low maintenance" goa
 
 4. Vercel Blob (The Final Solution)
 
-The current architecture leverages Vercel Blob for specialized object storage. Basically, Vercel offers a Storage service up to 1GB on free tiers which is currently enough for the size of the project. Each season of telemetry data weights approximately 6-7MB.
+The current architecture leverages Vercel Blob for specialized object storage. Basically, Vercel offers a Storage service up to 1GB on free tiers which is currently enough for the size of the project. Each season of telemetry data weights approximately ~50MB.
 
 Pros: Extremely Fast. High-speed edge delivery ensures the track map and telemetry graphs feel responsive. It bridges the gap between static files and a full database.
 
-Cons: Storage Ceiling.
+Cons: Storage Ceiling. Limit on the number of operations (upload/deletion/etc).
 
 ### Conclusion
 
