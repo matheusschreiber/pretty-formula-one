@@ -14,6 +14,7 @@ import TyreGraph from "../components/graphs/tyre";
 import SpeedGraph from "../components/graphs/speed";
 import type { Driver } from "../utils/types";
 import Footer from "../components/footer";
+import Loading from "../components/loading";
 
 export interface TelemetryPoint {
     seconds: number;
@@ -38,21 +39,23 @@ export default function Graphs() {
 
     const context = useContext(Context)!;
     if (!context) return <></>
-    const { 
-        drivers, rounds, round, year, setYear, 
+    const {
+        drivers, rounds, round, year, setYear,
         yearsAvailable, roundIdx, setRoundIdx,
-        selectedDriver, setSelectedDriver
-    } = context; 
+        selectedDriver, setSelectedDriver,
+        loadingYears, loadingRounds, loadingRound, setLoadingRound
+    } = context;
 
     useEffect(() => {
-        console.log({year, selectedDriver, roundIdx})
+        setLoadingRound(true);
+
         if (drivers.length == 0) {
             setTelemetryData([]);
             return;
         }
         if (!selectedDriver) setSelectedDriver(drivers[0]);
         if (!roundIdx) setRoundIdx(rounds[0].index);
-        
+
         getTelemetryData(selectedDriver?.id, roundIdx).then((rawCsv: string) => {
             const rows = rawCsv.trim().split('\n').slice(1);
             const parsedData = rows.map(row => {
@@ -72,6 +75,7 @@ export default function Graphs() {
                 };
             });
             setTelemetryData(parsedData);
+            setLoadingRound(false);
         });
     }, [year, selectedDriver, roundIdx]);
 
@@ -86,56 +90,63 @@ export default function Graphs() {
     }
 
     return (
-        <div className="w-full min-h-[110vh]">
-            <Header />
+        <>
+            {loadingYears || loadingRounds || loadingRound ? (
+                <Loading />
+            ) : (
+                <div className="w-full min-h-[110vh]">
+                    <Header />
 
-            <div className="w-full flex items-center my-10 justify-center gap-5">
-                <CustomSelect 
-                    onSelect={(value) => setYear(parseInt(value))} 
-                    options={yearsAvailable.map((a) => ({ id: a.toString(), name: a.toString() }))} 
-                    selectedOption={{ id: year.toString(), name: year.toString() }} />
-                {drivers.length > 0 && (
-                    <CustomSelect 
-                        onSelect={(value) => setSelectedDriver(getDriverById(value))} 
-                        options={drivers.sort((a, b) => a.name.localeCompare(b.name))} 
-                        selectedOption={{ id: selectedDriver?.id, name: selectedDriver?.name }} />
-                )}
-                {round && (
-                    <CustomSelect 
-                        onSelect={(value) => setRoundIdx(value)} 
-                        options={rounds.sort((a, b) => a.name.localeCompare(b.name))} 
-                        selectedOption={{ id: round.index, name: round.name }}/>
-                )}
-            </div>
-
-            {telemetryData && telemetryData.length > 0 && (
-                <p className="text-center w-full text-gray-light">
-                    Showing the fastest Lap of <strong>{selectedDriver?.name}</strong> on the
-                    <strong> {round?.name}</strong>, with a time of {" "}
-                    <strong className="text-red-500">
-                        {formatElapsedTime(telemetryData[telemetryData.length - 1].seconds)}
-                    </strong>
-                </p>
-            )}
-
-            <div className="w-full flex justify-center p-8 gap-10">
-                <TrackMap telemetryData={telemetryData} currentTime={currentTime} />
-                <div className="flex flex-col gap-10">
-                    <BrakeThrottleGraph telemetryData={telemetryData} currentTime={currentTime} />
-                    <div className="flex gap-10">
-                        <RPMGraph telemetryData={telemetryData} currentTime={currentTime} />
-                        <AltitudeGraph telemetryData={telemetryData} currentTime={currentTime} />
-                        <GearGraph telemetryData={telemetryData} currentTime={currentTime} />
+                    <div className="w-full flex items-center my-10 justify-center gap-5">
+                        <CustomSelect
+                            onSelect={(value) => setYear(parseInt(value))}
+                            options={yearsAvailable.map((a) => ({ id: a.toString(), name: a.toString() }))}
+                            selectedOption={{ id: year.toString(), name: year.toString() }} />
+                        {drivers.length > 0 && (
+                            <CustomSelect
+                                onSelect={(value) => setSelectedDriver(getDriverById(value))}
+                                options={drivers.sort((a, b) => a.name.localeCompare(b.name))}
+                                selectedOption={{ id: selectedDriver?.id, name: selectedDriver?.name }} />
+                        )}
+                        {round && (
+                            <CustomSelect
+                                onSelect={(value) => setRoundIdx(value)}
+                                options={rounds.sort((a, b) => a.name.localeCompare(b.name))}
+                                selectedOption={{ id: round.index, name: round.name }} />
+                        )}
                     </div>
-                    <div className="w-full flex justify-center gap-10">
-                        <TyreGraph telemetryData={telemetryData} />
-                        <SpeedGraph telemetryData={telemetryData} currentTime={currentTime} />
+
+                    {telemetryData && telemetryData.length > 0 && (
+                        <p className="text-center w-full text-gray-light">
+                            Showing the fastest Lap of <strong>{selectedDriver?.name}</strong> on the
+                            <strong> {round?.name}</strong>, with a time of {" "}
+                            <strong className="text-red-500">
+                                {formatElapsedTime(telemetryData[telemetryData.length - 1].seconds)}
+                            </strong>
+                        </p>
+                    )}
+
+                    <div className="w-full flex justify-center p-8 gap-10">
+                        <TrackMap telemetryData={telemetryData} currentTime={currentTime} />
+                        <div className="flex flex-col gap-10">
+                            <BrakeThrottleGraph telemetryData={telemetryData} currentTime={currentTime} />
+                            <div className="flex gap-10">
+                                <RPMGraph telemetryData={telemetryData} currentTime={currentTime} />
+                                <AltitudeGraph telemetryData={telemetryData} currentTime={currentTime} />
+                                <GearGraph telemetryData={telemetryData} currentTime={currentTime} />
+                            </div>
+                            <div className="w-full flex justify-center gap-10">
+                                <TyreGraph telemetryData={telemetryData} />
+                                <SpeedGraph telemetryData={telemetryData} currentTime={currentTime} />
+                            </div>
+                        </div>
                     </div>
+
+
+                    <Footer />
                 </div>
-            </div>
+            )}
+        </>
 
-           
-           <Footer />
-        </div>
     )
 }

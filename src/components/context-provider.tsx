@@ -20,6 +20,11 @@ interface ContextType {
     setRoundIdx: (roundIdx: number) => void;
 
     rounds: Round[];
+
+    loadingYears: boolean;
+    loadingRounds: boolean;
+    loadingRound: boolean; 
+    setLoadingRound: (loading: boolean) => void;
 }
 
 export const Context = createContext<ContextType | undefined>(undefined);
@@ -29,6 +34,9 @@ export const ContextProvider = ({ children }: { children: ReactNode }) => {
     const [selectedDriver, setSelectedDriver] = useState<Driver>();
     const [round, setRound] = useState<Round | undefined>();
     const [rounds, setRounds] = useState<Round[]>([]);
+    const [loadingYears, setLoadingYears] = useState<boolean>(true);
+    const [loadingRounds, setLoadingRounds] = useState<boolean>(true);
+    const [loadingRound, setLoadingRound] = useState<boolean>(true);
 
     const [yearsAvailable, setYearsAvailable] = useState<number[]>([]);
     const [year, setYear] = useState<number>(0);
@@ -39,6 +47,7 @@ export const ContextProvider = ({ children }: { children: ReactNode }) => {
             getYearsAvailable().then((years) => {
                 setYearsAvailable(years);
                 setYear(years[0]);
+                setLoadingYears(false);
             });
         }
     }, []);
@@ -48,6 +57,7 @@ export const ContextProvider = ({ children }: { children: ReactNode }) => {
             setRound(data.round)
             setRounds(data.rounds)
             setDrivers(data.drivers)
+            setLoadingRounds(false);
         })
     }, [year, roundIdx])
 
@@ -57,7 +67,9 @@ export const ContextProvider = ({ children }: { children: ReactNode }) => {
             selectedDriver, setSelectedDriver, 
             setRound, year, setYear, 
             yearsAvailable, roundIdx, 
-            setRoundIdx, rounds}}>
+            setRoundIdx, rounds,
+            loadingYears, loadingRounds,
+            loadingRound, setLoadingRound}}>
             {children}
         </Context.Provider>
     );

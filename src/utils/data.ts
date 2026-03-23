@@ -6,9 +6,13 @@ import { getBackgroundImage } from "./circuits-backgrounds";
 const BLOB_URL = import.meta.env.VITE_BLOB_VERCEL_URL as string;
 
 export async function getYearsAvailable(): Promise<number[]> {
-    const years = [2024, 2023, 2022, 2021] 
+    const years = [] 
+    const now = new Date().getFullYear()
+    for (let y = now; y >= now-3; y--) {
+        years.push(y);
+    }
     let availableYears: number[] = [];
-    for (let year of years) {
+    for (const year of years) {
         const responseDrivers = await fetch(`${BLOB_URL}/${year}/drivers_${year}.json`);
         const contentTypeDrivers = responseDrivers.headers.get("content-type");
         if (!contentTypeDrivers || !contentTypeDrivers.includes("application/json")) {
@@ -39,7 +43,7 @@ export async function getTimeToNextRace(): Promise<{ days: number, hours: number
     let nextEventName: string = "";
     let lastEventDate: Date | null = null;
     let lastEventName: string = "";
-    for(let date of rawDates) {
+    for(const date of rawDates) {
         const eventDate = new Date(date["date"]);
         if (eventDate <= now && (!lastEventDate || eventDate > lastEventDate)) {
             lastEventDate = eventDate;
@@ -56,8 +60,8 @@ export async function getTimeToNextRace(): Promise<{ days: number, hours: number
     // nextEventDate = new Date("2026-03-08T10:00:00Z");
     
     // Check if is race weekend
-    let lastDiffInSeconds = lastEventDate ? (now.getTime() - lastEventDate.getTime()) / 1000 : 0;
-    let lastDiffInDays = lastDiffInSeconds / (60 * 60 * 24); 
+    const lastDiffInSeconds = lastEventDate ? (now.getTime() - lastEventDate.getTime()) / 1000 : 0;
+    const lastDiffInDays = lastDiffInSeconds / (60 * 60 * 24); 
     if (lastDiffInSeconds > 0 && lastDiffInDays < 3) { 
         return {
             days: 0,
@@ -68,10 +72,10 @@ export async function getTimeToNextRace(): Promise<{ days: number, hours: number
     } 
     
     // If not, calculate time to next event
-    let nextDiffInSeconds = nextEventDate ? (nextEventDate.getTime() - now.getTime()) / 1000 : 0;
-    let nextDiffInMinutes = Math.floor(nextDiffInSeconds / 60) % 60
-    let nextDiffInHours = Math.floor(nextDiffInSeconds / 60 / 60) % 24
-    let nextDiffInDays = Math.floor(nextDiffInSeconds / 60 / 60 / 24)
+    const nextDiffInSeconds = nextEventDate ? (nextEventDate.getTime() - now.getTime()) / 1000 : 0;
+    const nextDiffInMinutes = Math.floor(nextDiffInSeconds / 60) % 60
+    const nextDiffInHours = Math.floor(nextDiffInSeconds / 60 / 60) % 24
+    const nextDiffInDays = Math.floor(nextDiffInSeconds / 60 / 60 / 24)
     return {
         days: nextDiffInDays,
         hours: nextDiffInHours,

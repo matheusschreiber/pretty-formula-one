@@ -2,12 +2,6 @@
 
 A fan-made website to see telemtry in a easy manner. Telemetry is seen in a graphical way and with near-zero delay or loading screens.
 
-## Screenshots
-
-![alt text](readme_media/pic1.png)
-
-![alt text](readme_media/pic2.png)
-
 ## Technical details
 
 The project is rather simple, it needs a frontend and a source of data to serve the `.json` and `.csv` files. The main problem here is the approach selected to display these values.
@@ -51,3 +45,10 @@ Cons: Storage Ceiling. Limit on the number of operations (upload/deletion/etc).
 ### Conclusion
 
 As of right now, the temporary solution is the Vercel Blobs, but as data can increase in the future, new approaches might take place.
+
+
+## Screenshots
+
+![alt text](readme_media/pic1.png)
+
+![alt text](readme_media/pic2.png)
