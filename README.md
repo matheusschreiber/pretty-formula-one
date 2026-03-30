@@ -46,9 +46,9 @@ Cons: Storage Ceiling. Limit on the number of operations (upload/deletion/etc).
 
 This final approach uses AWS S3 Bucket solution to store the files and fetch them.
 
-Pros: Extremely Fast. Cheap.
+Pros: Extremely Fast. Cheap (0,023 USD per GB on first 50 TB/Month)
 
-Cons: Yet to be discovered.
+Cons: Not free :(
 
 ### Conclusion
 
