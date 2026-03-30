@@ -34,17 +34,25 @@ Pros: Professional-grade reliability; handles massive datasets; monetization rea
 
 Cons: High Infrastructure Complexity. Moving away from the "low maintenance" goal. Managing a dedicated database, authentication, and a paywall requires significant time investment.
 
-4. Vercel Blob (The Final Solution)
+4. Vercel Blob (Almost perfect solution)
 
-The current architecture leverages Vercel Blob for specialized object storage. Basically, Vercel offers a Storage service up to 1GB on free tiers which is currently enough for the size of the project. Each season of telemetry data weights approximately ~50MB.
+This architecture leverages Vercel Blob for specialized object storage. Basically, Vercel offers a Storage service up to 1GB on free tiers which is currently enough for the size of the project. Each season of telemetry data weights approximately ~50MB.
 
 Pros: Extremely Fast. High-speed edge delivery ensures the track map and telemetry graphs feel responsive. It bridges the gap between static files and a full database.
 
 Cons: Storage Ceiling. Limit on the number of operations (upload/deletion/etc).
 
+5. AWS S3 (Final solution)
+
+This final approach uses AWS S3 Bucket solution to store the files and fetch them.
+
+Pros: Extremely Fast. Cheap.
+
+Cons: Yet to be discovered.
+
 ### Conclusion
 
-As of right now, the temporary solution is the Vercel Blobs, but as data can increase in the future, new approaches might take place.
+As of right now, the temporary solution is the AWS S3 Bucket, but as data can increase in the future, new approaches might take place.
 
 
 ## Screenshots
