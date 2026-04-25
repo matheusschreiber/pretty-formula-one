@@ -38,7 +38,6 @@ export const ContextProvider = ({ children }: { children: ReactNode }) => {
     const [loading, setLoading] = useState(false);
     
     const [drivers, setDrivers] = useState<Driver[]>([]);
-    const [driver, setDriver] = useState<Driver>({} as Driver);
 
     const [rounds, setRounds] = useState<Round[]>([]);
     const [round, setRound] = useState<Round>({} as Round);
@@ -87,17 +86,14 @@ export const ContextProvider = ({ children }: { children: ReactNode }) => {
     }
 
     useEffect(() => {
-        console.log('Fetching data...');
         fetchYears();
     }, []);
 
     useEffect(() => {
-        console.log('Fetching rounds and drivers...');
         fetchRoundsAndDrivers()
     }, [year]);
 
     useEffect(()=>{
-        console.log('Fetching round results...');
         fetchRoundResults()
     }, [round])
 

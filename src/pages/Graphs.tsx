@@ -136,7 +136,6 @@ export default function Graphs() {
                             driver && (
                                 <CustomSelect
                                     onSelect={(value) => setSearchParams(prev => {
-                                        console.log("Selected driver:", value);
                                         prev.set("driver", value);
                                         return prev;
                                     })}

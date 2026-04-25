@@ -45,7 +45,6 @@ export async function getDrivers(year:number): Promise<Driver[]> {
         recentProfit: 0,
         teamLogo: getTeamLogo(driver.team),
     }));
-    if (drivers.length === 0) return []
     return drivers
 }
 
@@ -66,7 +65,11 @@ export async function getResults(
     rounds: Round[] = [],
 ): Promise<{ drivers: Driver[], round: Round, rounds: Round[]}> {
 
-    // TODO: why do I do this?
+    if (drivers.length === 0 || rounds.length === 0) {
+        return { drivers, round: {} as Round, rounds };
+    }
+
+    // TODO: check if this is still necessary
     let driverMap = new Map(drivers.map(d => [d.id, d]));
     rounds = rounds.map((round) => ({
         ...round,
