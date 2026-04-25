@@ -5,9 +5,13 @@ import { Link } from "react-router-dom";
 
 
 export default function TelemetryPageCard({round}: {round: Round | undefined}) {
+    
+    const yearParam = round?.year ? round.year.toString() : "";
+    const roundParam = round?.index ? round.index.toString() : "";
+    const driverParam = round?.results && round.results.length > 0 && round.results[0].driver_id ? round.results[0].driver_id : "";
 
     return (
-        <Link to="/graphs">
+        <Link to={"/graphs?year=" + yearParam + "&round=" + roundParam + "&driver=" + driverParam}>
             <div className="group lg:w-125 lg:mb-0 lg:mx-0 mx-5 border border-gray-primary overflow-hidden 
                 rounded-4xl bg-zinc-950 
                 bg-no-repeat bg-cover bg-center hover:border-primary transition-colors cursor-pointer"
@@ -19,7 +23,7 @@ export default function TelemetryPageCard({round}: {round: Round | undefined}) {
                         {round && round.country && (
                             <img src={getCountryFlagIcon(round.country)} alt={round.country} className="h-5 mr-2" /> 
                         )}
-                        <p className="text-3xl">{round?.country}</p>
+                        <p className="text-2xl">{round?.country}</p>
                     </div>
                     
                     <div className="text-gray-light flex items-center">

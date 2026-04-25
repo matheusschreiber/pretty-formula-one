@@ -7,9 +7,7 @@ import { motion, type Variants } from 'framer-motion';
 
 export default function Racetable() {
 
-    const context = useContext(Context)!;
-    if (!context) return <></>;
-    
+    const context = useContext(Context);
     const { round } = context
     if (!round || !round.results) return <></>;
 
@@ -67,10 +65,10 @@ export default function Racetable() {
                             <motion.tr 
                                 key={`${round.id}-${result.driver.id}`}
                                 variants={itemVariants as Variants}>
-                                
+                                    
                                 <td className='relative text-center px-2 h-6'>{(index + 1).toString().padStart(2, '0')}</td>
                                 <td className='px-2'>
-                                    <img className='w-5 mx-auto' src={result.driver.teamLogo} alt={result.driver.team} />
+                                    <img className='w-5 mx-auto' src={result.driver.teamLogo} />
                                 </td>
                                 <td className='text-center px-2'>{result.driver.abbreviation}</td>
                                 {/* <td className="text-gray-light px-2">

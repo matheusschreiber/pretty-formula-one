@@ -1,6 +1,6 @@
 export type Driver = {
     id: string,
-    team: string,
+    team: string, // TODO: this is temporary
     abbreviation: string,
     name: string,
     points: number,
@@ -10,7 +10,7 @@ export type Driver = {
 
 export type RaceResult = {
     id: number,
-    driver_id: string,
+    driver_id: string, // TODO: REMOVE
     driver?: Driver,
     racePoints: number,
     sprintPoints: number,

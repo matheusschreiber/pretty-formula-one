@@ -4,11 +4,10 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function DriversTable() {
-    const context = useContext(Context)!;
-    if (!context) return <></>
-    const { drivers, round } = context;
+    const context = useContext(Context);
+    const { drivers, rounds, round } = context;
 
-    if (!round || drivers.length === 0) {
+    if (rounds.length === 0 || drivers.length === 0) {
         return <></>;
     }
 
@@ -45,7 +44,7 @@ export default function DriversTable() {
                                     {(index + 1).toString().padStart(2, '0')}
                                 </td>
                                 <td className='px-2'>
-                                    <img className='w-5 mx-auto' src={driver.teamLogo} alt={driver.team} />
+                                    <img className='w-5 mx-auto' src={driver.teamLogo} />
                                 </td>
                                 <td className='text-center px-2 font-bold'>{driver.abbreviation}</td>
                                 <td className="text-gray-light px-2">

@@ -1,4 +1,5 @@
 import { useContext, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { getTelemetryData } from "../utils/data";
 
 import BrakeThrottleGraph from "../components/graphs/brake-trottle";
@@ -12,7 +13,7 @@ import AltitudeGraph from "../components/graphs/altitude";
 import GearGraph from "../components/graphs/gear";
 import TyreGraph from "../components/graphs/tyre";
 import SpeedGraph from "../components/graphs/speed";
-import type { Driver } from "../utils/types";
+import type { Driver, Round } from "../utils/types";
 import Footer from "../components/footer";
 import Loading from "../components/loading";
 
@@ -37,26 +38,52 @@ export default function Graphs() {
     const maxTime = telemetryData.length > 0 ? telemetryData[telemetryData.length - 1].seconds : 0;
     const currentTime = useTelemetryTimer(maxTime);
 
-    const context = useContext(Context)!;
-    if (!context) return <></>
-    const {
-        drivers, rounds, round, year, setYear,
-        yearsAvailable, roundIdx, setRoundIdx,
-        selectedDriver, setSelectedDriver,
-        loadingYears, loadingRounds, loadingRound, setLoadingRound
-    } = context;
+    const context = useContext(Context);
+    const { drivers, rounds, years } = context;
+    
+    const [loading, setLoading] = useState(true);
+    const [searchParams, setSearchParams] = useSearchParams();
 
-    useEffect(() => {
-        setLoadingRound(true);
+    const [year, setYear] = useState<number>();
+    const [driver, setDriver] = useState<Driver>();
+    const [round, setRound] = useState<Round>();
 
-        if (drivers.length == 0) {
-            setTelemetryData([]);
+    async function fetchParams() {
+        if (years.length === 0 || drivers.length === 0 || rounds.length === 0) {
             return;
         }
-        if (!selectedDriver) setSelectedDriver(drivers[0]);
-        if (!roundIdx) setRoundIdx(rounds[0].index);
 
-        getTelemetryData(selectedDriver?.id, roundIdx).then((rawCsv: string) => {
+        setLoading(true);
+
+        let rawDriverParam = searchParams.get("driver");
+        let foundDriver = drivers.find(d => d.id === rawDriverParam);
+        if (!rawDriverParam || !foundDriver) foundDriver = drivers[0];
+        setDriver(foundDriver);
+        
+        let rawYearParam = searchParams.get("year");
+        let foundYear = years.find(y => y.toString() === rawYearParam);
+        if (!rawYearParam || !foundYear) foundYear = years[0];
+        setYear(foundYear);
+
+        let rawRoundParam = searchParams.get("round");
+        let foundRound = rounds.find(r => r.index.toString() === rawRoundParam);
+        if (!rawRoundParam || !foundRound) foundRound = rounds[0];
+        setRound(foundRound);
+        
+        setLoading(false);
+    }
+
+    useEffect(() => {
+        fetchParams()
+    }, [searchParams])
+
+    useEffect(() => {
+        if (!year || !driver || !round) {
+            return;
+        }
+
+        setLoading(true);
+        getTelemetryData(driver.id, round.index).then((rawCsv: string) => {
             const rows = rawCsv.trim().split('\n').slice(1);
             const parsedData = rows.map(row => {
                 const col = row.split(',');
@@ -75,9 +102,9 @@ export default function Graphs() {
                 };
             });
             setTelemetryData(parsedData);
-            setLoadingRound(false);
+            setLoading(false);
         });
-    }, [year, selectedDriver, roundIdx]);
+    }, [year, driver, round]);
 
     function formatElapsedTime(seconds: number): string {
         const mins = Math.floor(seconds / 60);
@@ -85,43 +112,57 @@ export default function Graphs() {
         return `${mins}:${secs.toFixed(3).padStart(6, '0')}`;
     }
 
-    function getDriverById(id: string): Driver {
-        return drivers.find(d => d.id === id) || drivers[0];
-    }
-
     return (
         <>
-            {loadingYears || loadingRounds || loadingRound ? (
+            {loading ? (
                 <Loading />
             ) : (
                 <div className="w-full min-h-[110vh]">
                     <Header />
 
                     <div className="w-full flex items-center my-10 justify-center gap-5">
-                        <CustomSelect
-                            onSelect={(value) => setYear(parseInt(value))}
-                            options={yearsAvailable.map((a) => ({ id: a.toString(), name: a.toString() }))}
-                            selectedOption={{ id: year.toString(), name: year.toString() }} />
-                        {drivers.length > 0 && (
-                            <CustomSelect
-                                onSelect={(value) => setSelectedDriver(getDriverById(value))}
-                                options={drivers.sort((a, b) => a.name.localeCompare(b.name))}
-                                selectedOption={{ id: selectedDriver?.id, name: selectedDriver?.name }} />
-                        )}
-                        {round && (
-                            <CustomSelect
-                                onSelect={(value) => setRoundIdx(value)}
-                                options={rounds.sort((a, b) => a.name.localeCompare(b.name))}
-                                selectedOption={{ id: round.index, name: round.name }} />
-                        )}
+                        {
+                            year && (
+                                <CustomSelect
+                                    onSelect={(value) => setSearchParams(prev => {
+                                        prev.set("year", value);
+                                        return prev;
+                                    })}
+                                    options={years.map((y) => ({ id: y.toString(), name: y.toString() }))}
+                                    selectedOption={{ id: year.toString(), name: year.toString() }} />
+                            )
+                        }
+                        {
+                            driver && (
+                                <CustomSelect
+                                    onSelect={(value) => setSearchParams(prev => {
+                                        console.log("Selected driver:", value);
+                                        prev.set("driver", value);
+                                        return prev;
+                                    })}
+                                    options={drivers.sort((a, b) => a.name.localeCompare(b.name))}
+                                    selectedOption={{ id: driver.id, name: driver.name }} />
+                            )
+                        }
+                        {
+                            round && (
+                                <CustomSelect
+                                    onSelect={(value) => setSearchParams(prev => {
+                                        prev.set("round", value);
+                                        return prev;
+                                    })}
+                                    options={rounds.sort((a, b) => a.name.localeCompare(b.name))}
+                                    selectedOption={{ id: round.index, name: round.name }} />
+                            )
+                        }
                     </div>
 
                     {telemetryData && telemetryData.length > 0 && (
                         <p className="text-center w-full text-gray-light">
-                            Showing the fastest Lap of <strong>{selectedDriver?.name}</strong> on the
-                            <strong> {round?.name}</strong>, with a time of {" "}
+                            Showing the fastest Lap of <strong>{driver?.name || "---"}</strong> on the
+                            <strong> {year} {round?.name || "---"}</strong>, with a time of {" "}
                             <strong className="text-red-500">
-                                {formatElapsedTime(telemetryData[telemetryData.length - 1].seconds)}
+                                {formatElapsedTime(telemetryData[telemetryData.length - 1].seconds) || "---"}
                             </strong>
                         </p>
                     )}

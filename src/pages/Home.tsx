@@ -10,15 +10,12 @@ import Loading from '../components/loading'
 
 function App() {
 
-    const context = useContext(Context)!;
-    if (!context) return <></>
-    const {
-        loadingYears, loadingRounds
-    } = context;
+    const context = useContext(Context)
+    const { loading } = context;
 
     return (
         <>
-            {loadingYears || loadingRounds ? (
+            {loading ? (
                 <Loading />
             ) : (
                 <>

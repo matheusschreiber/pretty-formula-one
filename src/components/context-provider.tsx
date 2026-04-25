@@ -1,75 +1,113 @@
 import { createContext, useEffect, useState, type ReactNode } from 'react';
 import type { Driver, Round } from '../utils/types';
-import { getData, getYearsAvailable } from '../utils/data';
+import { getDrivers, getResults, getRounds, getYears } from '../utils/data';
 
 interface ContextType {
+    loading: boolean;
+    
     drivers: Driver[];
-    setDrivers: (drivers: Driver[]) => void;
+    
+    
+    rounds: Round[];
+    round: Round;
+    setRound: (round: Round) => void; 
 
-    selectedDriver: Driver | undefined,
-    setSelectedDriver: (driver: Driver) => void;
-
-    round: Round | undefined;
-    setRound: (round: Round) => void;
-
+    years: number[];
     year: number;
     setYear: (year: number) => void;
-    yearsAvailable: number[];
-
-    roundIdx: number;
-    setRoundIdx: (roundIdx: number) => void;
-
-    rounds: Round[];
-
-    loadingYears: boolean;
-    loadingRounds: boolean;
-    loadingRound: boolean; 
-    setLoadingRound: (loading: boolean) => void;
 }
 
-export const Context = createContext<ContextType | undefined>(undefined);
+const initialContext: ContextType = {
+    loading: false,
+    
+    drivers: [],
+
+    rounds: [],
+    round: {} as Round,
+    setRound: () => {},
+    
+    years: [],
+    year: new Date().getFullYear(),
+    setYear: () => {},
+};
+
+export const Context = createContext<ContextType>(initialContext);
 
 export const ContextProvider = ({ children }: { children: ReactNode }) => {
+
+    const [loading, setLoading] = useState(false);
+    
     const [drivers, setDrivers] = useState<Driver[]>([]);
-    const [selectedDriver, setSelectedDriver] = useState<Driver>();
-    const [round, setRound] = useState<Round | undefined>();
+    const [driver, setDriver] = useState<Driver>({} as Driver);
+
     const [rounds, setRounds] = useState<Round[]>([]);
-    const [loadingYears, setLoadingYears] = useState<boolean>(true);
-    const [loadingRounds, setLoadingRounds] = useState<boolean>(true);
-    const [loadingRound, setLoadingRound] = useState<boolean>(true);
+    const [round, setRound] = useState<Round>({} as Round);
+    
+    const [years, setYears] = useState<number[]>([]);    
+    const [year, setYear] = useState<number>(new Date().getFullYear());
 
-    const [yearsAvailable, setYearsAvailable] = useState<number[]>([]);
-    const [year, setYear] = useState<number>(0);
-    const [roundIdx, setRoundIdx] = useState<number>(1);
-
-    useEffect(()=>{
-        if (!yearsAvailable || yearsAvailable.length == 0) {
-            getYearsAvailable().then((years) => {
-                setYearsAvailable(years);
-                setYear(years[0]);
-                setLoadingYears(false);
-            });
+    const fetchRoundsAndDrivers = async () => {
+        try {
+            const responseDrivers = await getDrivers(year)
+            const responseRounds = await getRounds(year)
+            const selectedRound = responseRounds[0]
+            const responseResults = await getResults(selectedRound.index, responseDrivers, responseRounds);
+            setDrivers(responseResults.drivers);
+            setRound(responseResults.round);
+            setRounds(responseResults.rounds);
+        } catch (error) {
+            console.error(error);
         }
+    }
+
+    const fetchYears = async () => {
+        setLoading(true);
+        try {
+            const responseYears = await getYears();
+            setYears(responseYears);
+            const lastYear = responseYears.slice(-1)[0];
+            setYear(lastYear);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchRoundResults = async () => {
+        try {
+            const responseResults = await getResults(round.index, drivers, rounds);
+            setDrivers(responseResults.drivers);
+            setRounds(responseResults.rounds);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    useEffect(() => {
+        console.log('Fetching data...');
+        fetchYears();
     }, []);
 
     useEffect(() => {
-        getData(year, roundIdx, drivers, rounds).then((data) => {
-            setRound(data.round)
-            setRounds(data.rounds)
-            setDrivers(data.drivers)
-            setLoadingRounds(false);
-        })
-    }, [year, roundIdx])
+        console.log('Fetching rounds and drivers...');
+        fetchRoundsAndDrivers()
+    }, [year]);
+
+    useEffect(()=>{
+        console.log('Fetching round results...');
+        fetchRoundResults()
+    }, [round])
 
     return (
-        <Context.Provider value={{ 
-            drivers, setDrivers, round,
-            selectedDriver, setSelectedDriver, 
-            setRound, year, setYear, 
-            yearsAvailable, roundIdx, 
-            setRoundIdx, rounds,
-            loadingYears, loadingRounds,
-            loadingRound, setLoadingRound}}>
+        <Context.Provider value={{
+            loading,
+            drivers,
+            rounds, round, setRound, 
+            years, year, setYear,
+        }}>
             {children}
         </Context.Provider>
     );

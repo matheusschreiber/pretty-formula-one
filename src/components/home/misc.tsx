@@ -6,17 +6,36 @@ import TelemetryPageCard from "./telemetry-card";
 import TyreStrategyCard from "./tyre-strategy";
 
 export default function Misc() {
-
-    const { year, setYear, yearsAvailable, round, rounds, roundIdx, setRoundIdx } = useContext(Context)!;
+    
+    const { 
+        years, year, setYear,  
+        rounds, round, setRound
+    } = useContext(Context);
 
     function getNextYear(){
-        setYear(yearsAvailable[yearsAvailable.indexOf(year)+1]); 
-        setRoundIdx(1)
+        setYear(years[years.indexOf(year)+1]); 
+        setRound(rounds[0])
     }
 
     function getPreviousYear(){
-        setYear(yearsAvailable[yearsAvailable.indexOf(year)-1]); 
-        setRoundIdx(1)
+        setYear(years[years.indexOf(year)-1]); 
+        setRound(rounds[0])
+    }
+
+    function getNextRound(){
+        const nextIndex = Math.max(1, Math.min(round.index + 1, rounds.length));
+        const nextRound = rounds.find(r => r.index === nextIndex);
+        if (nextRound) setRound(nextRound);
+    }
+
+    function getPreviousRound(){
+        const prevIndex = Math.max(1, Math.min(round.index - 1, rounds.length));
+        const prevRound = rounds.find(r => r.index === prevIndex);
+        if (prevRound) setRound(prevRound);
+    }
+
+    if (!round || rounds.length === 0 || !year || years.length === 0) {
+        return <></>
     }
     
     return (
@@ -25,19 +44,19 @@ export default function Misc() {
                 <CarouselSelector
                     label="Season"
                     value={year}
-                    min={yearsAvailable[yearsAvailable.length-1]}
-                    max={yearsAvailable[0]}
-                    onPrev={() => getNextYear()}
-                    onNext={() => getPreviousYear()}
+                    min={years[0]}
+                    max={years[years.length-1]}
+                    onPrev={() => getPreviousYear()}
+                    onNext={() => getNextYear()}
                 />
 
                 <CarouselSelector
                     label="Round"
-                    value={roundIdx}
+                    value={round.index}
                     min={1}
-                    max={rounds.length}
-                    onPrev={() => { setRoundIdx(roundIdx > 1 ? roundIdx - 1 : roundIdx) }}
-                    onNext={() => { setRoundIdx(roundIdx < rounds.length ? roundIdx + 1 : roundIdx) }}
+                    max={rounds.slice(-1)[0].index}
+                    onPrev={() => getPreviousRound()}
+                    onNext={() => getNextRound()}
                 />
             </div>
 
@@ -57,22 +76,21 @@ export default function Misc() {
                 <CarouselSelector
                     label="Season"
                     value={year}
-                    min={yearsAvailable[yearsAvailable.length-1]}
-                    max={yearsAvailable[0]}
-                    onPrev={() => getNextYear()}
-                    onNext={() => getPreviousYear()}
+                    min={years[0]}
+                    max={years[years.length-1]}
+                    onPrev={() => getPreviousYear()}
+                    onNext={() => getNextYear()}
                 />
 
                 <CarouselSelector
                     label="Round"
-                    value={roundIdx}
+                    value={round.index}
                     min={1}
-                    max={rounds.length}
-                    onPrev={() => { setRoundIdx(roundIdx > 1 ? roundIdx - 1 : roundIdx) }}
-                    onNext={() => { setRoundIdx(roundIdx < rounds.length ? roundIdx + 1 : roundIdx) }}
+                    max={rounds.slice(-1)[0].index}
+                    onPrev={() => getPreviousRound()}
+                    onNext={() => getNextRound()}
                 />
             </div>
-
         </div>
     )
 }
