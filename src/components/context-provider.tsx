@@ -7,7 +7,6 @@ interface ContextType {
     
     drivers: Driver[];
     
-    
     rounds: Round[];
     round: Round;
     setRound: (round: Round) => void; 
