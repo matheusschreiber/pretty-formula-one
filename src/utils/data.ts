@@ -15,14 +15,14 @@ export async function getYears(): Promise<number[]> {
     for (const year of years) {
         const responseDrivers = await fetch(`${DATA_URL}/${year}/drivers_${year}.json`);
         const contentTypeDrivers = responseDrivers.headers.get("content-type");
-        if (!contentTypeDrivers || !contentTypeDrivers.includes("application/json")) {
+        if (!contentTypeDrivers) {
             availableYears = availableYears.filter(y => y !== year);
             continue
         } 
 
         const responseRounds = await fetch(`${DATA_URL}/${year}/rounds_${year}.json`);
         const contentTypeRounds = responseRounds.headers.get("content-type");
-        if (!contentTypeRounds || !contentTypeRounds.includes("application/json")) {
+        if (!contentTypeRounds) {
             availableYears = availableYears.filter(y => y !== year);
             continue
         }
@@ -52,7 +52,7 @@ export async function getRounds(year:number): Promise<Round[]> {
     const responseRounds = await fetch(`${DATA_URL}/${year}/rounds_${year}.json`);
     const contentType = responseRounds.headers.get("content-type");
     let rounds: Round[] = [];
-    if (!contentType || !contentType.includes("application/json")) {
+    if (!contentType) {
         return [];
     }
     rounds = await responseRounds.json() as Round[];

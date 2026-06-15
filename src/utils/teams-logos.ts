@@ -3,7 +3,7 @@ import audi from '../assets/icons/audi.png'
 import haas from '../assets/icons/haas.png'     
 import mercedes from '../assets/icons/mercedes.png'  
 import redbull from '../assets/icons/redbull.png'
-
+import cadillac from '../assets/icons/cadillac.png'
 import amartin from '../assets/icons/amartin.png'  
 import ferrari from '../assets/icons/ferrari.png'  
 import mclaren from '../assets/icons/mclaren.png'  
@@ -31,6 +31,8 @@ export const getTeamLogo = (team:string) => {
             return williams;
         case 'Haas F1 Team':
             return haas;
+        case 'Cadillac':
+            return cadillac;
         case 'Kick Sauber':
         case 'Sauber':
         case 'Audi':

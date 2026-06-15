@@ -43,7 +43,7 @@ export const getCircuitTrack = (circuitName: string): string => {
             return monaco;
         case 'Canadian Grand Prix':
             return canadian;
-        case 'Spanish Grand Prix':
+        case 'Barcelona Grand Prix':
             return spanish;
         case 'Austrian Grand Prix':
             return austrian;

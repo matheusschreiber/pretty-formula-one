@@ -2,6 +2,7 @@ import { useContext } from 'react';
 import { Context } from '../../context-provider';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import placeholderTeamLogo from '../../../assets/icons/placeholder.png';
 
 export default function DriversTable() {
     const context = useContext(Context);
@@ -44,7 +45,7 @@ export default function DriversTable() {
                                     {(index + 1).toString().padStart(2, '0')}
                                 </td>
                                 <td className='px-2'>
-                                    <img className='w-5 mx-auto' src={driver.teamLogo} />
+                                    <img className='w-5 mx-auto' src={driver.teamLogo ? driver.teamLogo : placeholderTeamLogo } />
                                 </td>
                                 <td className='text-center px-2 font-bold'>{driver.abbreviation}</td>
                                 <td className="text-gray-light px-2">

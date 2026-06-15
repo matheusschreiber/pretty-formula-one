@@ -1,9 +1,7 @@
-
 import { useContext } from 'react';
 import { Context } from '../../context-provider';
-
 import { motion, type Variants } from 'framer-motion';
-
+import placeholderTeamLogo from '../../../assets/icons/placeholder.png';
 
 export default function Racetable() {
 
@@ -36,7 +34,8 @@ export default function Racetable() {
         <>
             <div className="bg-main-dark overflow-clip w-100 border border-gray-primary rounded-3xl lg:m-0 mx-auto">
                 <div className="flex flex-col items-center justify-center gap-2 mb-4">
-                    <div className='flex items-center justify-center w-full h-36 bg-cover bg-no-repeat bg-center' style={{ backgroundImage: `url(${round?.backgroundImage})` }}>
+                    <div className='flex items-center justify-center w-full h-36 bg-cover bg-no-repeat bg-center' 
+                    style={{ backgroundImage: `url(${round?.backgroundImage})` }}>
                         <p className="text-center text-3xl">
                             {round && round.name}
                         </p>
@@ -68,7 +67,7 @@ export default function Racetable() {
                                     
                                 <td className='relative text-center px-2 h-6'>{(index + 1).toString().padStart(2, '0')}</td>
                                 <td className='px-2'>
-                                    <img className='w-5 mx-auto' src={result.driver.teamLogo} />
+                                    <img className='w-5 mx-auto' src={result.driver.teamLogo ? result.driver.teamLogo : placeholderTeamLogo } />
                                 </td>
                                 <td className='text-center px-2'>{result.driver.abbreviation}</td>
                                 {/* <td className="text-gray-light px-2">

@@ -255,12 +255,16 @@ if __name__ == "__main__":
         
     print(f"Available rounds for year {year}: {available_rounds}")
     
+    print(f"Connecting to AWS S3 bucket {BUCKET_NAME}...", end="", flush=True)
+    
     s3_aws_client = boto3.client(
         's3',
         aws_access_key_id=ACCESS_KEY,
         aws_secret_access_key=SECRET_KEY,
         region_name=REGION
     )
+    
+    print(" [Connected]")
     
     rounds_json, drivers_json, telemetries_csvs_filenames = get_aws_files(s3_aws_client, year)
     last_round = get_last_round(rounds_json)
@@ -269,7 +273,7 @@ if __name__ == "__main__":
         rounds_json = update_rounds_json(drivers_json, rounds_json, rounds_to_process)
         upload_to_aws(
             client=s3_aws_client,
-            file_content=rounds_json, 
+            file_content=json.dumps(rounds_json),
             folder=year, 
             filename=f"rounds_{year}.json"
         )
@@ -282,7 +286,7 @@ if __name__ == "__main__":
         print(f"All rounds for year {year} have been processed. Exiting.")
         print("-"*40)
         
-    print(f"Processing telemetry data for year {year}...")
+    print(f"Processing telemetry data for yefetchRoundsAndDriversar {year}...")
 
     for driver in drivers_json:
         last_round_driver = get_last_round_driver(year, driver["id"], telemetries_csvs_filenames)
