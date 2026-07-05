@@ -33,7 +33,7 @@ export default function TyreStrategyLineChart({ round }: { round: Round }) {
 
     return (
         <div className="flex flex-col gap-3 p-8 border border-white/10 rounded-4xl bg-zinc-950 shadow-2xl 
-            overflow-hidden h-120">
+            overflow-hidden max-h-125">
             <div className="flex items-center justify-between text-[0.6rem] font-black tracking-[0.2em] uppercase mb-5">
                 <p className="text-zinc-500">
                     Race Strategy Chart 
@@ -55,19 +55,6 @@ export default function TyreStrategyLineChart({ round }: { round: Round }) {
                     viewBox={`0 0 ${INTERNAL_WIDTH + LABEL_WIDTH} ${results.length * ROW_HEIGHT + 50}`} 
                     className="w-full h-auto overflow-visible"
                 >
-                    {[...Array(9)].map((_, i) => {
-                        const lap = Math.round((maxLaps / 8) * i);
-                        const x = getX(lap) + LABEL_WIDTH;
-                        return (
-                            <g key={i}>
-                                <line x1={x} y1="0" x2={x} y2={results.length * ROW_HEIGHT} stroke="#222" strokeDasharray="4" />
-                                <text x={x} y={results.length * ROW_HEIGHT + 40} fill="#555" fontSize="30" textAnchor="middle" className="font-mono">
-                                    {lap === 0 ? 'START' : `L${lap}`}
-                                </text>
-                            </g>
-                        );
-                    })}
-
                     {results.map((driverResult, rowIndex) => {
                         const y = rowIndex * ROW_HEIGHT + ROW_HEIGHT / 2;
                         
@@ -100,6 +87,8 @@ export default function TyreStrategyLineChart({ round }: { round: Round }) {
                                                 stroke={color} 
                                                 strokeWidth="10" 
                                                 strokeLinecap="round"
+                                                opacity="0.6"
+                                                // strokeDasharray="10"
                                                 className="transition-all cursor-crosshair"
                                             />
                                             
@@ -112,6 +101,20 @@ export default function TyreStrategyLineChart({ round }: { round: Round }) {
                             </g>
                         );
                     })}
+
+                    {[...Array(9)].map((_, i) => {
+                        const lap = Math.round((maxLaps / 8) * i);
+                        const x = getX(lap) + LABEL_WIDTH;
+                        return (
+                            <g key={i}>
+                                <line x1={x} y1="0" x2={x} y2={results.length * ROW_HEIGHT} stroke="#222" strokeDasharray="4" />
+                                <text x={x} y={results.length * ROW_HEIGHT + 40} fill="#555" fontSize="30" textAnchor="middle" className="font-mono">
+                                    {lap === 0 ? 'START' : `L${lap}`}
+                                </text>
+                            </g>
+                        );
+                    })}
+
                 </svg>
             </div>
         </div>
