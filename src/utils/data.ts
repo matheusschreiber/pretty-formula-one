@@ -174,10 +174,10 @@ export async function getTelemetryData(driverId: string|undefined, roundIdx: num
     if (!driverId || !roundIdx) return "";
     const year = driverId.split("_").slice(-1)[0];
     const response = await fetch(`${DATA_URL}/${year}/telemetry_${driverId}_${roundIdx}.csv`);
-    const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("text/csv")) {
-        return "";
-    }
+    // const contentType = response.headers.get("content-type");
+    // if (!contentType || !contentType.includes("text/csv")) {
+    //     return "";
+    // }
     const data = await response.text();
     return data;
 }

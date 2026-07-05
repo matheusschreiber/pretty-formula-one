@@ -48,34 +48,27 @@ export default function Graphs() {
     const [driver, setDriver] = useState<Driver>();
     const [round, setRound] = useState<Round>();
 
-    async function fetchParams() {
+    useEffect(() => {
         if (years.length === 0 || drivers.length === 0 || rounds.length === 0) {
             return;
         }
 
         setLoading(true);
 
-        let rawDriverParam = searchParams.get("driver");
-        let foundDriver = drivers.find(d => d.id === rawDriverParam);
-        if (!rawDriverParam || !foundDriver) foundDriver = drivers[0];
+        const rawDriverParam = searchParams.get("driver");
+        const foundDriver = drivers.find(d => d.id === rawDriverParam) ?? drivers[0];
         setDriver(foundDriver);
-        
-        let rawYearParam = searchParams.get("year");
-        let foundYear = years.find(y => y.toString() === rawYearParam);
-        if (!rawYearParam || !foundYear) foundYear = years[0];
+
+        const rawYearParam = searchParams.get("year");
+        const foundYear = years.find(y => y.toString() === rawYearParam) ?? years[0];
         setYear(foundYear);
 
-        let rawRoundParam = searchParams.get("round");
-        let foundRound = rounds.find(r => r.index.toString() === rawRoundParam);
-        if (!rawRoundParam || !foundRound) foundRound = rounds[0];
+        const rawRoundParam = searchParams.get("round");
+        const foundRound = rounds.find(r => r.index.toString() === rawRoundParam) ?? rounds[0];
         setRound(foundRound);
-        
-        setLoading(false);
-    }
 
-    useEffect(() => {
-        fetchParams()
-    }, [searchParams])
+        setLoading(false);
+    }, [searchParams, years, drivers, rounds]);
 
     useEffect(() => {
         if (!year || !driver || !round) {
@@ -182,6 +175,7 @@ export default function Graphs() {
                         </div>
                     </div>
 
+                    <div className="min-h-screen"></div>
 
                     <Footer />
                 </div>
