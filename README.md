@@ -54,6 +54,9 @@ Cons: Not free :(
 
 As of right now, the temporary solution is the AWS S3 Bucket, but as data can increase in the future, new approaches might take place.
 
+## Data pipeline
+
+Season data (round results, tyre strategies, and per-driver fastest-lap telemetry) is kept in sync with S3 by a small Python job under [scripts/](scripts/). See [scripts/README.md](scripts/README.md) for how `automation.py` works, how to configure it, and how to run it locally or via Docker.
 
 ## Screenshots
 
