@@ -6,29 +6,9 @@ import { getBackgroundImage } from "./circuits-backgrounds";
 const DATA_URL = import.meta.env.VITE_DATA_URL as string;
 
 export async function getYears(): Promise<number[]> {
-    const years = [] 
-    const now = new Date().getFullYear()
-    for (let y = now; y >= now-3; y--) {
-        years.push(y);
-    }
-    let availableYears: number[] = [];
-    for (const year of years) {
-        const responseDrivers = await fetch(`${DATA_URL}/${year}/drivers_${year}.json`);
-        const contentTypeDrivers = responseDrivers.headers.get("content-type");
-        if (!contentTypeDrivers) {
-            availableYears = availableYears.filter(y => y !== year);
-            continue
-        } 
-
-        const responseRounds = await fetch(`${DATA_URL}/${year}/rounds_${year}.json`);
-        const contentTypeRounds = responseRounds.headers.get("content-type");
-        if (!contentTypeRounds) {
-            availableYears = availableYears.filter(y => y !== year);
-            continue
-        }
-
-        availableYears.push(year);
-    }
+    const responseYears = await fetch(`${DATA_URL}/years.meta`);
+    const data = await responseYears.text();
+    let availableYears: number[] = data.split(",").map(Number);
     return availableYears.sort();
 }
 
