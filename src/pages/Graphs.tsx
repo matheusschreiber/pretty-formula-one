@@ -114,6 +114,14 @@ export default function Graphs() {
                     <Header />
 
                     <div className="w-full flex items-center my-10 justify-center gap-5">
+                    
+                        <a href="/" className="mr-20">
+                            <button className="px-5 py-2 bg-zinc-900 border border-gray-primary rounded-lg shadow-xl cursor-pointer
+                            hover:bg-zinc-800 transition-all duration-300 scale-100 hover:scale-105">
+                                Go back
+                            </button>
+                        </a>
+
                         {
                             year && (
                                 <CustomSelect
