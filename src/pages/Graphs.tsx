@@ -39,20 +39,21 @@ export default function Graphs() {
     const currentTime = useTelemetryTimer(maxTime);
 
     const context = useContext(Context);
-    const { drivers, rounds, years } = context;
+    const { drivers, rounds, years, year, setYear } = context;
     
     const [loading, setLoading] = useState(true);
     const [searchParams, setSearchParams] = useSearchParams();
 
-    const [year, setYear] = useState<number>();
+    // const [year, setYear] = useState<number>();
     const [driver, setDriver] = useState<Driver>();
     const [round, setRound] = useState<Round>();
 
     useEffect(() => {
         if (years.length === 0 || drivers.length === 0 || rounds.length === 0) {
+            setLoading(false);
             return;
         }
-
+        
         setLoading(true);
 
         const rawDriverParam = searchParams.get("driver");
@@ -72,6 +73,7 @@ export default function Graphs() {
 
     useEffect(() => {
         if (!year || !driver || !round) {
+            setLoading(false);
             return;
         }
 
@@ -97,7 +99,7 @@ export default function Graphs() {
             setTelemetryData(parsedData);
             setLoading(false);
         });
-    }, [year, driver, round]);
+    }, [driver, round]);
 
     function formatElapsedTime(seconds: number): string {
         const mins = Math.floor(seconds / 60);
@@ -105,90 +107,101 @@ export default function Graphs() {
         return `${mins}:${secs.toFixed(3).padStart(6, '0')}`;
     }
 
+    if (loading) {
+        return <Loading />;
+    }
+
+    if (years.length === 0 || drivers.length === 0 || rounds.length === 0 || !year || !driver || !round) {
+        return (
+            <div className="w-full min-h-screen flex flex-col items-center justify-center gap-5">
+                <h1 className="text-2xl text-red-500 font-bold">An error occurred while loading the data.</h1>
+                <p className="text-gray-light">Please try again later or check your internet connection.</p>
+                <a href="/" className="px-5 py-2 bg-zinc-900 border border-gray-primary rounded-lg shadow-xl cursor-pointer
+                    hover:bg-zinc-800 transition-all duration-300 scale-100 hover:scale-105">
+                    Go back
+                </a>
+            </div>
+        )
+    }
+
     return (
-        <>
-            {loading ? (
-                <Loading />
-            ) : (
-                <div className="w-full min-h-[110vh]">
-                    <Header />
+        <div className="w-full min-h-[110vh]">
+            <Header />
 
-                    <div className="w-full flex items-center my-10 justify-center gap-5">
-                    
-                        <a href="/" className="mr-20">
-                            <button className="px-5 py-2 bg-zinc-900 border border-gray-primary rounded-lg shadow-xl cursor-pointer
-                            hover:bg-zinc-800 transition-all duration-300 scale-100 hover:scale-105">
-                                Go back
-                            </button>
-                        </a>
+            <div className="w-full flex items-center my-10 justify-center gap-5">
+            
+                <a href="/" className="mr-20">
+                    <button className="px-5 py-2 bg-zinc-900 border border-gray-primary rounded-lg shadow-xl cursor-pointer
+                    hover:bg-zinc-800 transition-all duration-300 scale-100 hover:scale-105">
+                        Go back
+                    </button>
+                </a>
 
-                        {
-                            year && (
-                                <CustomSelect
-                                    onSelect={(value) => setSearchParams(prev => {
-                                        prev.set("year", value);
-                                        return prev;
-                                    })}
-                                    options={years.map((y) => ({ id: y.toString(), name: y.toString() }))}
-                                    selectedOption={{ id: year.toString(), name: year.toString() }} />
-                            )
-                        }
-                        {
-                            driver && (
-                                <CustomSelect
-                                    onSelect={(value) => setSearchParams(prev => {
-                                        prev.set("driver", value);
-                                        return prev;
-                                    })}
-                                    options={drivers.sort((a, b) => a.name.localeCompare(b.name))}
-                                    selectedOption={{ id: driver.id, name: driver.name }} />
-                            )
-                        }
-                        {
-                            round && (
-                                <CustomSelect
-                                    onSelect={(value) => setSearchParams(prev => {
-                                        prev.set("round", value);
-                                        return prev;
-                                    })}
-                                    options={rounds.sort((a, b) => a.name.localeCompare(b.name))}
-                                    selectedOption={{ id: round.index, name: round.name }} />
-                            )
-                        }
-                    </div>
+                {
+                    year && (
+                        <CustomSelect
+                            onSelect={(value) => setSearchParams(prev => {
+                                prev.set("year", value);
+                                return prev;
+                            })}
+                            options={years.map((y) => ({ id: y.toString(), name: y.toString() }))}
+                            selectedOption={{ id: year.toString(), name: year.toString() }} />
+                    )
+                }
+                {
+                    driver && (
+                        <CustomSelect
+                            onSelect={(value) => setSearchParams(prev => {
+                                prev.set("driver", value);
+                                return prev;
+                            })}
+                            options={drivers.sort((a, b) => a.name.localeCompare(b.name))}
+                            selectedOption={{ id: driver.id, name: driver.name }} />
+                    )
+                }
+                {
+                    round && (
+                        <CustomSelect
+                            onSelect={(value) => setSearchParams(prev => {
+                                prev.set("round", value);
+                                return prev;
+                            })}
+                            options={rounds.sort((a, b) => a.name.localeCompare(b.name))}
+                            selectedOption={{ id: round.index, name: round.name }} />
+                    )
+                }
+            </div>
 
-                    {telemetryData && telemetryData.length > 0 && (
-                        <p className="text-center w-full text-gray-light">
-                            Showing the fastest Lap of <strong>{driver?.name || "---"}</strong> on the
-                            <strong> {year} {round?.name || "---"}</strong>, with a time of {" "}
-                            <strong className="text-red-500">
-                                {formatElapsedTime(telemetryData[telemetryData.length - 1].seconds) || "---"}
-                            </strong>
-                        </p>
-                    )}
-
-                    <div className="w-full flex justify-center p-8 gap-10">
-                        <TrackMap telemetryData={telemetryData} currentTime={currentTime} />
-                        <div className="flex flex-col gap-10">
-                            <BrakeThrottleGraph telemetryData={telemetryData} currentTime={currentTime} />
-                            <div className="flex gap-10">
-                                <RPMGraph telemetryData={telemetryData} currentTime={currentTime} />
-                                <AltitudeGraph telemetryData={telemetryData} currentTime={currentTime} />
-                                <GearGraph telemetryData={telemetryData} currentTime={currentTime} />
-                            </div>
-                            <div className="w-full flex justify-center gap-10">
-                                <TyreGraph telemetryData={telemetryData} />
-                                <SpeedGraph telemetryData={telemetryData} currentTime={currentTime} />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="min-h-screen"></div>
-
-                    <Footer />
-                </div>
+            {telemetryData && telemetryData.length > 0 && (
+                <p className="text-center w-full text-gray-light">
+                    Showing the fastest Lap of <strong>{driver?.name || "---"}</strong> on the
+                    <strong> {year} {round?.name || "---"}</strong>, with a time of {" "}
+                    <strong className="text-red-500">
+                        {formatElapsedTime(telemetryData[telemetryData.length - 1].seconds) || "---"}
+                    </strong>
+                </p>
             )}
-        </>
+
+            <div className="w-full flex justify-center p-8 gap-10">
+                <TrackMap telemetryData={telemetryData} currentTime={currentTime} />
+                <div className="flex flex-col gap-10">
+                    <BrakeThrottleGraph telemetryData={telemetryData} currentTime={currentTime} />
+                    <div className="flex gap-10">
+                        <RPMGraph telemetryData={telemetryData} currentTime={currentTime} />
+                        <AltitudeGraph telemetryData={telemetryData} currentTime={currentTime} />
+                        <GearGraph telemetryData={telemetryData} currentTime={currentTime} />
+                    </div>
+                    <div className="w-full flex justify-center gap-10">
+                        <TyreGraph telemetryData={telemetryData} />
+                        <SpeedGraph telemetryData={telemetryData} currentTime={currentTime} />
+                    </div>
+                </div>
+            </div>
+
+            <div className="min-h-screen"></div>
+
+            <Footer />
+        </div>
 
     )
 }

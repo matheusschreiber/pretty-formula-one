@@ -48,7 +48,7 @@ export const ContextProvider = ({ children }: { children: ReactNode }) => {
         try {
             const responseDrivers = await getDrivers(year)
             const responseRounds = await getRounds(year)
-            const selectedRound = responseRounds[0]
+            const selectedRound = responseRounds.slice(-1)[0]
             const responseResults = await getResults(selectedRound.index, responseDrivers, responseRounds);
             setDrivers(responseResults.drivers);
             setRound(responseResults.round);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 
@@ -11,6 +11,7 @@ interface Props {
 export default function CustomSelect({ onSelect, options, selectedOption }: Props) {
     const [isOpen, setIsOpen] = useState(false);
     const [selected, setSelected] = useState({"id": "", "name": "Select an option"});
+    const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(()=>{
         if (options.length == 0) return;
@@ -22,8 +23,21 @@ export default function CustomSelect({ onSelect, options, selectedOption }: Prop
         }
     }, [selectedOption])
 
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const handleClickOutside = (event: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [isOpen]);
+
     return (
-        <div className="relative w-64 font-sans">
+        <div ref={containerRef} className="relative w-64 font-sans">
             <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
