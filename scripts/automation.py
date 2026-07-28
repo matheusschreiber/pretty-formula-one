@@ -35,6 +35,12 @@ def update_rounds_json(drivers_json, rounds_json, rounds_to_process):
                 for _, row in race_session.results.iterrows()
             }
             
+            retired_drivers = [
+                f"{row['DriverId']}_{year}" 
+                for _, row in race_session.results.iterrows()
+                if row['Status'] == 'Retired'
+            ]
+            
             sprint_points_map = {}
             has_sprint = False
             try:
@@ -88,7 +94,8 @@ def update_rounds_json(drivers_json, rounds_json, rounds_to_process):
                     "driver_id": d_id,
                     "racePoints": r_points,
                     "sprintPoints": s_points,
-                    "tyre_strat": lap_tyre_data.get(d_number, [])
+                    "tyreStrat": lap_tyre_data.get(d_number, []),
+                    "retired": d_id in retired_drivers
                 })
 
             event_info = race_session.event
@@ -96,6 +103,8 @@ def update_rounds_json(drivers_json, rounds_json, rounds_to_process):
             schedule_df = fastf1.get_event_schedule(year)
             rounds_list = schedule_df["RoundNumber"][schedule_df["RoundNumber"] > 0].tolist()
             total_rounds = len(rounds_list)
+            
+            sorted_results = sorted(race_results_list, key=lambda x: x["racePoints"] - (1000 if x['retired'] else 0), reverse=True) 
 
             round_data = {
                 "id": int(event_info["RoundNumber"]),
@@ -106,7 +115,7 @@ def update_rounds_json(drivers_json, rounds_json, rounds_to_process):
                 "nameVerbose": event_info["OfficialEventName"],
                 "country": country,
                 "backgroundImage": f"/assets/circuits/{country.lower().replace(' ', '_')}.png",
-                "results": sorted(race_results_list, key=lambda x: x["racePoints"], reverse=True),
+                "results": sorted_results,
             }
 
             rounds_json.append(round_data)

@@ -22,7 +22,7 @@ export default function TyreStrategyLineChart({ round }: { round: Round }) {
             setResults(round.results);
             const total = Math.max(
                 ...round.results.flatMap(res => 
-                    res.tyre_strat ? res.tyre_strat.map(s => s.lapEnd) : []
+                    res.tyreStrat ? res.tyreStrat.map(s => s.lapEnd) : []
                 ), 57
             );
             setMaxLaps(total);
@@ -74,7 +74,7 @@ export default function TyreStrategyLineChart({ round }: { round: Round }) {
                                     stroke="#111" strokeWidth="1" 
                                 />
 
-                                {driverResult.tyre_strat?.map((stint, index) => {
+                                {driverResult.tyreStrat?.map((stint, index) => {
                                     const xStart = getX(stint.lapStart) + LABEL_WIDTH;
                                     const xEnd = getX(stint.lapEnd) + LABEL_WIDTH;
                                     const color = typeMap[stint.compound] || '#333';

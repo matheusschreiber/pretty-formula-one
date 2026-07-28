@@ -14,7 +14,7 @@ export type RaceResult = {
     driver?: Driver,
     racePoints: number,
     sprintPoints: number,
-    tyre_strat: {
+    tyreStrat: {
         lapStart: number,
         lapEnd: number,
         compound: TyreType,

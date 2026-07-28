@@ -56,7 +56,7 @@ Each entry appended to `rounds_<year>.json` looks like:
             "driver_id": "max_verstappen_2026",
             "racePoints": 25,
             "sprintPoints": 0,
-            "tyre_strat": [
+            "tyreStrat": [
                 { "compound": "SOFT",   "lapStart": 1,  "lapEnd": 18, "stint": 1 },
                 { "compound": "MEDIUM", "lapStart": 19, "lapEnd": 44, "stint": 2 }
             ]
