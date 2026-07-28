@@ -1,10 +1,16 @@
-import fastf1
-import boto3
 import json
+import logging
 import os
-import logging 
+from datetime import datetime
+
+import boto3
+import fastf1
+
 logging.getLogger('fastf1').setLevel(logging.ERROR) # keep this to avoid log polution
+import sys
+
 from dotenv import load_dotenv
+
 load_dotenv()
 
 ACCESS_KEY = os.getenv('AWS_ACCESS_KEY_ID')
@@ -12,11 +18,12 @@ SECRET_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 REGION = os.getenv('AWS_REGION', 'us-east-1')
 BUCKET_NAME = os.getenv('AWS_BUCKET_NAME')
 
-def update_rounds_json(drivers_json, rounds_json, rounds_to_process):
+def update_rounds_json(drivers_json, rounds_json, year, rounds_to_process):
     
-    year = rounds_json[0]["year"]
     if not year:
-        raise ValueError("Year not found in rounds_json.")
+        raise ValueError("Year not provided.")
+    
+    print(f"Rounds to process for year {year}: {rounds_to_process}")
     
     for round_id in rounds_to_process:
         try:
@@ -38,7 +45,7 @@ def update_rounds_json(drivers_json, rounds_json, rounds_to_process):
             retired_drivers = [
                 f"{row['DriverId']}_{year}" 
                 for _, row in race_session.results.iterrows()
-                if row['Status'] == 'Retired'
+                if row['Status'] not in ['Finished', 'Lapped']
             ]
             
             sprint_points_map = {}
@@ -52,9 +59,8 @@ def update_rounds_json(drivers_json, rounds_json, rounds_to_process):
                     row['DriverNumber']: int(row['Points']) 
                     for _, row in sprint_session.results.iterrows()
                 }
-            except Exception:
+            except Exception:  # noqa: BLE001
                 print(f"No sprint session data available for round {round_id}.")
-                pass
 
             print(f"Compiling race and drivers data for round {round_id}...")
             
@@ -120,13 +126,39 @@ def update_rounds_json(drivers_json, rounds_json, rounds_to_process):
 
             rounds_json.append(round_data)
             rounds_json.sort(key=lambda x: x["id"])
-            return rounds_json
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(f"Error processing round {round_id}: {e}")
             break
+    
+    return rounds_json
         
-    return None
+
+def create_drivers_json(year):
+    schedule = fastf1.get_event_schedule(year)
+    passed_events = schedule[schedule['EventDate'] < datetime.now()]  # noqa: DTZ005
+    last_event_name = passed_events.iloc[-1]['EventName']
+    session = fastf1.get_session(year, last_event_name, 'R')
+    session.load(laps=False, telemetry=False, weather=False)
+    drivers_list = []
+    seen_drivers = set()
+    for _, row in session.results.iterrows():
+        driver_slug = f"{row['DriverId']}_{year}"
+        if driver_slug not in seen_drivers:
+            drivers_list.append({
+                "id": driver_slug,
+                "team": row["TeamName"],
+                "abbreviation": row["Abbreviation"],
+                "name": row["FullName"],
+                "teamLogo": f"/assets/icons/{row['TeamName'].lower().replace(' ', '-')}.png",
+            })
+            seen_drivers.add(driver_slug)
+    return drivers_list
+    
+
+def create_rounds_json(year): 
+    rounds_json = []
+    return rounds_json
 
     
 def get_aws_files(s3_aws_client, year):
@@ -199,7 +231,7 @@ def get_new_telemetry_csv(year, driver_id, round_id):
     start_td = fastest_lap["Time"] - fastest_lap["LapTime"]
     try:
         telemetry = fastest_lap.get_telemetry()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"No telemetry data for driver {driver_id} in round {round_id} {year}. Exception: {e}")
         return None
     telemetry['RelativeSeconds'] = (telemetry['SessionTime'] - start_td).dt.total_seconds()
@@ -245,22 +277,22 @@ def get_available_rounds(year):
                 break
             available_rounds.append(round_id)
             print(" [Available]")
-        except Exception as ex:
+        except Exception as ex:  # noqa: BLE001
             print(ex)
             break
     return available_rounds
-    
+
 
 if __name__ == "__main__":
     
-    year = 2026
+    year = datetime.now().year  # noqa: DTZ005
     
     print(f"Starting automation script for year {year}...")
     
     available_rounds = get_available_rounds(year)
     if not available_rounds:
         print(f"No available rounds found for year {year}. Exiting.")
-        exit(0)
+        sys.exit(0)
         
     print(f"Available rounds for year {year}: {available_rounds}")
     
@@ -276,10 +308,12 @@ if __name__ == "__main__":
     print(" [Connected]")
     
     rounds_json, drivers_json, telemetries_csvs_filenames = get_aws_files(s3_aws_client, year)
+    rounds_json = rounds_json if rounds_json else create_rounds_json(year)
+    drivers_json = drivers_json if drivers_json else create_drivers_json(year)
     last_round = get_last_round(rounds_json)
     rounds_to_process = [r for r in available_rounds if r > last_round]
     if rounds_to_process:
-        rounds_json = update_rounds_json(drivers_json, rounds_json, rounds_to_process)
+        rounds_json = update_rounds_json(drivers_json, rounds_json, year, rounds_to_process)
         upload_to_aws(
             client=s3_aws_client,
             file_content=json.dumps(rounds_json),
