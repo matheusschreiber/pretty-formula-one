@@ -14,12 +14,12 @@ export default function Misc() {
 
     function getNextYear(){
         setYear(years[years.indexOf(year)+1]); 
-        setRound(rounds[0])
+        // setRound(rounds[0])
     }
 
     function getPreviousYear(){
         setYear(years[years.indexOf(year)-1]); 
-        setRound(rounds[0])
+        // setRound(rounds[0])
     }
 
     function getNextRound(){
