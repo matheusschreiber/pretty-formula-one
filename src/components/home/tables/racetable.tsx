@@ -67,7 +67,9 @@ export default function Racetable() {
                                     
                                 <td className='relative text-center px-2 h-6'>{(index + 1).toString().padStart(2, '0')}</td>
                                 <td className='px-2'>
-                                    <img className='w-5 mx-auto' src={result.driver.teamLogo ? result.driver.teamLogo : placeholderTeamLogo } />
+                                    <img className='w-5 mx-auto' 
+                                        alt={result.driver.team} title={result.driver.team}
+                                        src={result.driver.teamLogo ? result.driver.teamLogo : placeholderTeamLogo } />
                                 </td>
                                 <td className='text-center px-2'>{result.driver.abbreviation}</td>
                                 {/* <td className="text-gray-light px-2">

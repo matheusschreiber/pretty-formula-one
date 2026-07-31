@@ -9,6 +9,10 @@ import ferrari from '../assets/icons/ferrari.png'
 import mclaren from '../assets/icons/mclaren.png'  
 import rbracing from '../assets/icons/rbracing.png'  
 import williams from '../assets/icons/williams.png'
+import sauber from '../assets/icons/sauber.png'
+import alphatauri from '../assets/icons/alphatauri.png'
+import alpharomeo from '../assets/icons/alpharomeo.png'
+import kicksauber from '../assets/icons/kicksauber.png'
 
 export const getTeamLogo = (team:string) => {
     switch (team) {
@@ -33,10 +37,16 @@ export const getTeamLogo = (team:string) => {
             return haas;
         case 'Cadillac':
             return cadillac;
-        case 'Kick Sauber':
         case 'Sauber':
+            return sauber;
+        case 'Kick Sauber':
+            return kicksauber;
         case 'Audi':
             return audi;
+        case 'AlphaTauri':
+            return alphatauri;
+        case 'Alfa Romeo':
+            return alpharomeo;
         default:
             return '';
     }

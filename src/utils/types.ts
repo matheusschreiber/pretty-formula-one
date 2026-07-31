@@ -20,6 +20,7 @@ export type RaceResult = {
         compound: TyreType,
         stint: number
     }[],
+    retired: boolean,
 }
 
 export type Round = {

@@ -44,6 +44,7 @@ export const getBackgroundImage = (circuitName: string): string => {
         case 'Canadian Grand Prix':
             return canadian;
         case 'Barcelona Grand Prix':
+        case 'Spanish Grand Prix':
             return spanish;
         case 'Austrian Grand Prix':
             return austrian;

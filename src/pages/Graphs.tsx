@@ -40,20 +40,21 @@ export default function Graphs() {
 
     const context = useContext(Context);
     const { drivers, rounds, years, year, setYear } = context;
-    
+
     const [loading, setLoading] = useState(true);
     const [searchParams, setSearchParams] = useSearchParams();
 
-    // const [year, setYear] = useState<number>();
     const [driver, setDriver] = useState<Driver>();
     const [round, setRound] = useState<Round>();
+
+    const [dnf, setDNF] = useState<boolean>(false);
 
     useEffect(() => {
         if (years.length === 0 || drivers.length === 0 || rounds.length === 0) {
             setLoading(false);
             return;
         }
-        
+
         setLoading(true);
 
         const rawDriverParam = searchParams.get("driver");
@@ -78,6 +79,15 @@ export default function Graphs() {
         }
 
         setLoading(true);
+
+        setDNF(true)
+        round.results.forEach(result => {
+            if (result.driver_id == driver.id) {
+                setDNF(result.retired)
+                console.log(result)
+            }
+        })
+
         getTelemetryData(driver.id, round.index).then((rawCsv: string) => {
             const rows = rawCsv.trim().split('\n').slice(1);
             const parsedData = rows.map(row => {
@@ -129,7 +139,7 @@ export default function Graphs() {
             <Header />
 
             <div className="w-full flex items-center my-10 justify-center gap-5">
-            
+
                 <a href="/" className="mr-20">
                     <button className="px-5 py-2 bg-zinc-900 border border-gray-primary rounded-lg shadow-xl cursor-pointer
                     hover:bg-zinc-800 transition-all duration-300 scale-100 hover:scale-105">
@@ -172,31 +182,39 @@ export default function Graphs() {
                 }
             </div>
 
-            {telemetryData && telemetryData.length > 0 && (
-                <p className="text-center w-full text-gray-light">
-                    Showing the fastest Lap of <strong>{driver?.name || "---"}</strong> on the
-                    <strong> {year} {round?.name || "---"}</strong>, with a time of {" "}
-                    <strong className="text-red-500">
-                        {formatElapsedTime(telemetryData[telemetryData.length - 1].seconds) || "---"}
-                    </strong>
+            {dnf && (
+                <p className="text-center">
+                    The driver <strong>{driver?.name || "---"}</strong> didn't finish
+                    the <strong> {year} {round?.name || "---"}</strong>.
                 </p>
             )}
 
-            <div className="w-full flex justify-center p-8 gap-10">
-                <TrackMap telemetryData={telemetryData} currentTime={currentTime} />
-                <div className="flex flex-col gap-10">
-                    <BrakeThrottleGraph telemetryData={telemetryData} currentTime={currentTime} />
-                    <div className="flex gap-10">
-                        <RPMGraph telemetryData={telemetryData} currentTime={currentTime} />
-                        <AltitudeGraph telemetryData={telemetryData} currentTime={currentTime} />
-                        <GearGraph telemetryData={telemetryData} currentTime={currentTime} />
+            {telemetryData && telemetryData.length > 0 && !dnf && (
+                <>
+                    <p className="text-center w-full text-gray-light">
+                        Showing the fastest Lap of <strong>{driver?.name || "---"}</strong> on the
+                        <strong> {year} {round?.name || "---"}</strong>, with a time of {" "}
+                        <strong className="text-red-500">
+                            {formatElapsedTime(telemetryData[telemetryData.length - 1].seconds) || "---"}
+                        </strong>
+                    </p>
+                    <div className="w-full flex justify-center p-8 gap-10">
+                        <TrackMap telemetryData={telemetryData} currentTime={currentTime} />
+                        <div className="flex flex-col gap-10">
+                            <BrakeThrottleGraph telemetryData={telemetryData} currentTime={currentTime} />
+                            <div className="flex gap-10">
+                                <RPMGraph telemetryData={telemetryData} currentTime={currentTime} />
+                                <AltitudeGraph telemetryData={telemetryData} currentTime={currentTime} />
+                                <GearGraph telemetryData={telemetryData} currentTime={currentTime} />
+                            </div>
+                            <div className="w-full flex justify-center gap-10">
+                                <TyreGraph telemetryData={telemetryData} />
+                                <SpeedGraph telemetryData={telemetryData} currentTime={currentTime} />
+                            </div>
+                        </div>
                     </div>
-                    <div className="w-full flex justify-center gap-10">
-                        <TyreGraph telemetryData={telemetryData} />
-                        <SpeedGraph telemetryData={telemetryData} currentTime={currentTime} />
-                    </div>
-                </div>
-            </div>
+                </>
+            )}
 
             <div className="min-h-screen"></div>
 

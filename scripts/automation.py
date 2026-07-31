@@ -307,9 +307,14 @@ if __name__ == "__main__":
     
     print(" [Connected]")
     
+    print(f"Fetching existing rounds and drivers JSON from AWS S3 for year {year}...")
+    
     rounds_json, drivers_json, telemetries_csvs_filenames = get_aws_files(s3_aws_client, year)
     rounds_json = rounds_json if rounds_json else create_rounds_json(year)
     drivers_json = drivers_json if drivers_json else create_drivers_json(year)
+    
+    print(f"Processing rounds data for year {year}...")
+    
     last_round = get_last_round(rounds_json)
     rounds_to_process = [r for r in available_rounds if r > last_round]
     if rounds_to_process:
@@ -329,7 +334,7 @@ if __name__ == "__main__":
         print(f"All rounds for year {year} have been processed. Exiting.")
         print("-"*40)
         
-    print(f"Processing telemetry data for yefetchRoundsAndDriversar {year}...")
+    print(f"Processing telemetry data for year {year}...")
 
     for driver in drivers_json:
         last_round_driver = get_last_round_driver(year, driver["id"], telemetries_csvs_filenames)

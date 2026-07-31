@@ -37,8 +37,8 @@ export default function TelemetryPageCard({round}: {round: Round | undefined}) {
                     <div className="pl-2 mx-10 w-fit border-l-4 border-primary
                         group-hover:ml-15 transition-all duration-400">
                         <p className="text-2xl">Brake & Throttle</p>
-                        <p className="text-lg text-gray-light">GEARS</p>
-                        <p className="text-sm text-zinc-600">RPM</p>
+                        <p className="text-lg text-gray-light">GEARS & RPM</p>
+                        <p className="text-sm text-zinc-600">Fatest Lap of each driver</p>
                     </div>
                     <p className="text-8xl ml-[60%] -mb-15 -mt-10 text-red-400 mr-auto
                         group-hover:-mb-3 group-hover:-mt-22 transition-all duration-500">

@@ -62,35 +62,15 @@ export default function Misc() {
 
             {round && rounds.length > 0 && (
                 <div className="flex flex-col justify-between gap-5 my-5">
+                    <CircuitMap round={round} />
                     <TelemetryPageCard round={round} />
                     <TyreStrategyCard round={round} />
-                    <CircuitMap round={round} />
                 </div>
             )}
             
             {(!round || rounds.length === 0) ? (
                 <p className="text-center mt-10">Data not found :(</p>
             ) : (<></>)}
-
-            <div className="flex justify-center items-center gap-10 mt-5">
-                <CarouselSelector
-                    label="Season"
-                    value={year}
-                    min={years[0]}
-                    max={years[years.length-1]}
-                    onPrev={() => getPreviousYear()}
-                    onNext={() => getNextYear()}
-                />
-
-                <CarouselSelector
-                    label="Round"
-                    value={round.index}
-                    min={1}
-                    max={rounds.slice(-1)[0].index}
-                    onPrev={() => getPreviousRound()}
-                    onNext={() => getNextRound()}
-                />
-            </div>
         </div>
     )
 }

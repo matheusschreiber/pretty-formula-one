@@ -44,6 +44,7 @@ export const getCountryFlagIcon = (country:string | undefined) => {
         "Brazil": brazil,
         "Qatar": qatar,
         "United Arab Emirates": uae,
+        "Abu Dhabi": uae,
     };
     return country ? countryFlags[country] : "";
 };
