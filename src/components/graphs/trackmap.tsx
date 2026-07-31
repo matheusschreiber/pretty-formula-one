@@ -52,7 +52,7 @@ export default function TrackMap({ telemetryData, currentTime }: TrackMapProps) 
 
     const bounds = useMemo(() => {
         var auxBounds = {minX: 0, maxX: 0, minY: 0, maxY: 0};
-        Object.entries(telemetryData).forEach(([key, value]) => {
+        Object.entries(telemetryData).forEach(([_, value]) => {
             if (typeof(value) == "string") return;
             if (value.length === 0) {
                 auxBounds = { 

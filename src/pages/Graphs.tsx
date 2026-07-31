@@ -237,7 +237,7 @@ export default function Graphs() {
                 telemetryData.driver2.length > 0 && !dnfDriverId && (
                 <>
                     <p className="text-center w-full text-gray-light">
-                        Showing the fastest Lap of <strong>{driver1?.name || "---"}</strong> ({" "}
+                        Showing the fastest laps of <strong>{driver1?.name || "---"}</strong> ({" "}
                         <strong className="text-red-500">
                             {formatElapsedTime(telemetryData.driver1[telemetryData.driver1.length - 1].seconds) || "---"}
                         </strong>) and <strong>{driver2?.name || "---"}</strong> ({" "}
