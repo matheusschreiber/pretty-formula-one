@@ -242,7 +242,7 @@ def get_new_telemetry_csv(year, driver_id, round_id):
     position_points = []
     for row in telemetry.itertuples():
         position_points.append((
-            round(row.RelativeSeconds,1), 
+            round(row.RelativeSeconds,3), 
             round(row.X,1), 
             round(row.Y,1),
             round(row.Z,1),

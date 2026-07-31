@@ -7,7 +7,7 @@ export default function Footer() {
 
     return (
 
-        <div className='bg-linear-to-r from-[#171717] to-[#141414] mt-10'>
+        <div className='bg-linear-to-r from-[#171717] to-[#141414] mt-64'>
             <div className="w-full px-20 flex gap-20 pt-20 lg:flex-row flex-col">
                 <div>
                     <img src={logo} alt="Logo" />

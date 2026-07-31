@@ -51,7 +51,8 @@ export default function DriversTable() {
                                 </td>
                                 <td className='text-center px-2 font-bold'>{driver.abbreviation}</td>
                                 <td className="text-gray-light px-2">
-                                    <p className="truncate w-30">{driver.name}</p>
+                                    <p className="truncate w-30" 
+                                        title={driver.name}>{driver.name}</p>
                                 </td>
                                 <td className="px-2 font-bold">
                                     {driver.points.toFixed(1)}

@@ -24,7 +24,7 @@ body {
     min-height: 100vh;
     color: white;
     font-family: "Kdam Thmor Pro", sans-serif;
-    background: radial-gradient(circle, rgba(43, 42, 42, 1) 0%, rgba(0, 0, 0, 1) 100%);
+    background: radial-gradient(circle, rgb(24, 24, 24) 0%, rgba(0, 0, 0, 1) 100%);
     background-repeat: no-repeat;
     background-attachment: fixed;
 }

@@ -71,7 +71,7 @@ export default function Racetable() {
                                         alt={result.driver.team} title={result.driver.team}
                                         src={result.driver.teamLogo ? result.driver.teamLogo : placeholderTeamLogo } />
                                 </td>
-                                <td className='text-center px-2'>{result.driver.abbreviation}</td>
+                                <td className='text-center px-2' title={result.driver.name}>{result.driver.abbreviation}</td>
                                 {/* <td className="text-gray-light px-2">
                                     <p className="truncate w-30">{result.driver.name}</p>
                                 </td> */}

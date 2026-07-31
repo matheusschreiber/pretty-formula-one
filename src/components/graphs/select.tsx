@@ -42,7 +42,7 @@ export default function CustomSelect({ onSelect, options, selectedOption }: Prop
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center justify-between w-full px-4 py-3 
+                className="flex items-center justify-between w-full px-4 py-3 cursor-pointer 
             hover:bg-zinc-800 transition-colors duration-200
             text-white bg-zinc-900 border border-gray-primary rounded-lg shadow-xl"
             >

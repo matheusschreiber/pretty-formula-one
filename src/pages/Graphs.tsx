@@ -31,11 +31,21 @@ export interface TelemetryPoint {
     compound: string;
 }
 
+export interface TelemetryData {
+    driver1: TelemetryPoint[];
+    driver1Name: string;
+    driver2: TelemetryPoint[];
+    driver2Name: string;
+}
+
 export default function Graphs() {
 
-    const [telemetryData, setTelemetryData] = useState<TelemetryPoint[]>([]);
+    const [telemetryData, setTelemetryData] = useState<TelemetryData>({ driver1: [], driver1Name: "", driver2: [], driver2Name: "" });
 
-    const maxTime = telemetryData.length > 0 ? telemetryData[telemetryData.length - 1].seconds : 0;
+    const maxTime = Math.max(
+        telemetryData.driver1.length > 0 ? telemetryData.driver1[telemetryData.driver1.length - 1].seconds : 0,
+        telemetryData.driver2.length > 0 ? telemetryData.driver2[telemetryData.driver2.length - 1].seconds : 0
+    );
     const currentTime = useTelemetryTimer(maxTime);
 
     const context = useContext(Context);
@@ -44,10 +54,11 @@ export default function Graphs() {
     const [loading, setLoading] = useState(true);
     const [searchParams, setSearchParams] = useSearchParams();
 
-    const [driver, setDriver] = useState<Driver>();
+    const [driver1, setDriver1] = useState<Driver>();
+    const [driver2, setDriver2] = useState<Driver>();
     const [round, setRound] = useState<Round>();
 
-    const [dnf, setDNF] = useState<boolean>(false);
+    const [dnfDriverId, setDNFDriverId] = useState<string | null>(null);
 
     useEffect(() => {
         if (years.length === 0 || drivers.length === 0 || rounds.length === 0) {
@@ -57,9 +68,13 @@ export default function Graphs() {
 
         setLoading(true);
 
-        const rawDriverParam = searchParams.get("driver");
-        const foundDriver = drivers.find(d => d.id === rawDriverParam) ?? drivers[0];
-        setDriver(foundDriver);
+        const rawDriver1Param = searchParams.get("driver1");
+        const foundDriver1 = drivers.find(d => d.id === rawDriver1Param) ?? drivers[0];
+        setDriver1(foundDriver1);
+
+        const rawDriver2Param = searchParams.get("driver2");
+        const foundDriver2 = drivers.find(d => d.id === rawDriver2Param) ?? drivers[0];
+        setDriver2(foundDriver2);
 
         const rawYearParam = searchParams.get("year");
         const foundYear = years.find(y => y.toString() === rawYearParam) ?? years[0];
@@ -72,44 +87,62 @@ export default function Graphs() {
         setLoading(false);
     }, [searchParams, years, drivers, rounds]);
 
+    async function fetchTelemetryData(driverId: string, roundIndex: number) {
+        const rawCsv = await getTelemetryData(driverId, roundIndex);
+        const rows = rawCsv.trim().split('\n').slice(1);
+        return rows.map(row => {
+            const col = row.split(',');
+            return {
+                seconds: parseFloat(col[0]),
+                x: parseFloat(col[1]),
+                y: parseFloat(col[2]),
+                z: parseFloat(col[3]),
+                rpm: parseFloat(col[4]),
+                speed: parseFloat(col[5]),
+                gear: parseInt(col[6]),
+                throttle: parseFloat(col[7]),
+                brake: col[8] == 'True',
+                drs: parseFloat(col[9]),
+                compound: col[11],
+            };
+        });
+    }
+
+    async function getTelemetry(driver1: Driver, driver2: Driver, round: Round) {
+        const driver1ParsedData = await fetchTelemetryData(driver1.id, round.index);
+        const driver2ParsedData = await fetchTelemetryData(driver2.id, round.index);
+
+        return {
+            driver1: driver1ParsedData,
+            driver1Name: driver1.name,
+            driver2: driver2ParsedData,
+            driver2Name: driver2.name,
+        };
+    }
+
     useEffect(() => {
-        if (!year || !driver || !round) {
+        if (!year || !driver1 || !driver2 || !round) {
             setLoading(false);
             return;
         }
 
         setLoading(true);
 
-        setDNF(true)
+        setDNFDriverId(null);
         round.results.forEach(result => {
-            if (result.driver_id == driver.id) {
-                setDNF(result.retired)
-                console.log(result)
+            if (result.driver_id == driver1.id || result.driver_id == driver2.id) {
+                if (result.retired) {
+                    setDNFDriverId(result.driver_id);
+                }
             }
         })
-
-        getTelemetryData(driver.id, round.index).then((rawCsv: string) => {
-            const rows = rawCsv.trim().split('\n').slice(1);
-            const parsedData = rows.map(row => {
-                const col = row.split(',');
-                return {
-                    seconds: parseFloat(col[0]),
-                    x: parseFloat(col[1]),
-                    y: parseFloat(col[2]),
-                    z: parseFloat(col[3]),
-                    rpm: parseFloat(col[4]),
-                    speed: parseFloat(col[5]),
-                    gear: parseInt(col[6]),
-                    throttle: parseFloat(col[7]),
-                    brake: col[8] == 'True',
-                    drs: parseFloat(col[9]),
-                    compound: col[11],
-                };
-            });
-            setTelemetryData(parsedData);
+        
+        getTelemetry(driver1, driver2, round).then((telemetry) => {
+            setTelemetryData(telemetry);
             setLoading(false);
         });
-    }, [driver, round]);
+
+    }, [driver1, driver2, round]);
 
     function formatElapsedTime(seconds: number): string {
         const mins = Math.floor(seconds / 60);
@@ -121,7 +154,7 @@ export default function Graphs() {
         return <Loading />;
     }
 
-    if (years.length === 0 || drivers.length === 0 || rounds.length === 0 || !year || !driver || !round) {
+    if (years.length === 0 || drivers.length === 0 || rounds.length === 0 || !year || !driver1 || !driver2 || !round) {
         return (
             <div className="w-full min-h-screen flex flex-col items-center justify-center gap-5">
                 <h1 className="text-2xl text-red-500 font-bold">An error occurred while loading the data.</h1>
@@ -159,14 +192,25 @@ export default function Graphs() {
                     )
                 }
                 {
-                    driver && (
+                    driver1 && (
                         <CustomSelect
                             onSelect={(value) => setSearchParams(prev => {
-                                prev.set("driver", value);
+                                prev.set("driver1", value);
                                 return prev;
                             })}
                             options={drivers.sort((a, b) => a.name.localeCompare(b.name))}
-                            selectedOption={{ id: driver.id, name: driver.name }} />
+                            selectedOption={{ id: driver1.id, name: driver1.name }} />
+                    )
+                }
+                {
+                    driver2 && (
+                        <CustomSelect
+                            onSelect={(value) => setSearchParams(prev => {
+                                prev.set("driver2", value);
+                                return prev;
+                            })}
+                            options={drivers.sort((a, b) => a.name.localeCompare(b.name))}
+                            selectedOption={{ id: driver2.id, name: driver2.name }} />
                     )
                 }
                 {
@@ -182,41 +226,46 @@ export default function Graphs() {
                 }
             </div>
 
-            {dnf && (
+            {dnfDriverId && (
                 <p className="text-center">
-                    The driver <strong>{driver?.name || "---"}</strong> didn't finish
+                    The driver <strong>{dnfDriverId || "---"}</strong> didn't finish
                     the <strong> {year} {round?.name || "---"}</strong>.
                 </p>
             )}
 
-            {telemetryData && telemetryData.length > 0 && !dnf && (
+            {telemetryData && telemetryData.driver1.length > 0 && 
+                telemetryData.driver2.length > 0 && !dnfDriverId && (
                 <>
                     <p className="text-center w-full text-gray-light">
-                        Showing the fastest Lap of <strong>{driver?.name || "---"}</strong> on the
-                        <strong> {year} {round?.name || "---"}</strong>, with a time of {" "}
+                        Showing the fastest Lap of <strong>{driver1?.name || "---"}</strong> ({" "}
                         <strong className="text-red-500">
-                            {formatElapsedTime(telemetryData[telemetryData.length - 1].seconds) || "---"}
-                        </strong>
+                            {formatElapsedTime(telemetryData.driver1[telemetryData.driver1.length - 1].seconds) || "---"}
+                        </strong>) and <strong>{driver2?.name || "---"}</strong> ({" "}
+                        <strong className="text-red-500">
+                            {formatElapsedTime(telemetryData.driver2[telemetryData.driver2.length - 1].seconds) || "---"}
+                        </strong>) on the
+                        <strong> {year} {round?.name || "---"}</strong>.
                     </p>
                     <div className="w-full flex justify-center p-8 gap-10">
-                        <TrackMap telemetryData={telemetryData} currentTime={currentTime} />
+                        <div className="flex flex-col gap-10">
+                            <TrackMap telemetryData={telemetryData} currentTime={currentTime} />
+                            <div className="w-full flex justify-center gap-10">
+                                <GearGraph telemetryData={telemetryData} currentTime={currentTime} />
+                                <TyreGraph telemetryData={telemetryData} />
+                            </div>
+                        </div>
                         <div className="flex flex-col gap-10">
                             <BrakeThrottleGraph telemetryData={telemetryData} currentTime={currentTime} />
                             <div className="flex gap-10">
                                 <RPMGraph telemetryData={telemetryData} currentTime={currentTime} />
                                 <AltitudeGraph telemetryData={telemetryData} currentTime={currentTime} />
-                                <GearGraph telemetryData={telemetryData} currentTime={currentTime} />
                             </div>
-                            <div className="w-full flex justify-center gap-10">
-                                <TyreGraph telemetryData={telemetryData} />
-                                <SpeedGraph telemetryData={telemetryData} currentTime={currentTime} />
-                            </div>
+                            <SpeedGraph telemetryData={telemetryData} currentTime={currentTime} />
                         </div>
                     </div>
+                    
                 </>
             )}
-
-            <div className="min-h-screen"></div>
 
             <Footer />
         </div>
