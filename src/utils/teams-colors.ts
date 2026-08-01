@@ -1,0 +1,18 @@
+export const TEAM_COLORS: Record<string, string> = {
+    'Ferrari': '#DC0000',
+    'Mercedes': '#27F4D2',
+    'McLaren': '#FF8000',
+    'Red Bull Racing': '#3671C6',
+    'RB': '#6692FF',
+    'Racing Bulls': '#6692FF',
+    'Alpine': '#FF87BC',
+    'Aston Martin': '#229971',
+    'Williams': '#64C4FF',
+    'Haas F1 Team': '#B6BABD',
+    'Cadillac': '#F1BE48',
+    'Sauber': '#52E252',
+    'Kick Sauber': '#52E252',
+    'Audi': '#00E5E5',
+    'AlphaTauri': '#2B4562',
+    'Alfa Romeo': '#900000',
+};

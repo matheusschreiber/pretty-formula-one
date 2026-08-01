@@ -19,6 +19,7 @@ function App() {
                 <Loading />
             ) : (
                 <>
+                <div className="w-full min-h-screen">
                     <Header />
                     <div className='mt-10 lg:flex lg:gap-5 justify-center hidden'>
                         <DriversTable />
@@ -31,7 +32,8 @@ function App() {
                         <DriversTable />
                         <RaceTable />
                     </div>
-                    <Footer />
+                </div>
+                <Footer />
                 </>
             )}
 

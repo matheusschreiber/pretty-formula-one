@@ -151,6 +151,7 @@ def create_drivers_json(year):
                 "abbreviation": row["Abbreviation"],
                 "name": row["FullName"],
                 "teamLogo": f"/assets/icons/{row['TeamName'].lower().replace(' ', '-')}.png",
+                "photo": row["HeadshotUrl"].replace(".png.transform/1col/image.png",".png.transform/4col/image.png")
             })
             seen_drivers.add(driver_slug)
     return drivers_list
@@ -311,7 +312,21 @@ if __name__ == "__main__":
     
     rounds_json, drivers_json, telemetries_csvs_filenames = get_aws_files(s3_aws_client, year)
     rounds_json = rounds_json if rounds_json else create_rounds_json(year)
-    drivers_json = drivers_json if drivers_json else create_drivers_json(year)
+    
+    print(f"Processing drivers data for year {year}...")
+    
+    if not drivers_json:
+        print(f"No existing drivers JSON found for year {year}. Creating new drivers JSON...")
+        drivers_json = create_drivers_json(year)
+        upload_to_aws(
+            client=s3_aws_client,
+            file_content=json.dumps(drivers_json),
+            folder=year, 
+            filename=f"drivers_{year}.json"
+        )
+        print(f"Created and uploaded new drivers JSON for year {year} to AWS S3.")
+    else:
+        print(f"Existing drivers JSON found for year {year}.")
     
     print(f"Processing rounds data for year {year}...")
     

@@ -27,7 +27,7 @@ export default function TelemetryPageCard({round}: {round: Round | undefined}) {
                     </div>
                     
                     <div className="text-gray-light flex items-center">
-                        <ShipWheel className="inline-block" />
+                        <ShipWheel className="inline-block mr-2" />
                         <p className="text-sm font-bold">Telemetry Data</p>
                     </div>
                 </div>

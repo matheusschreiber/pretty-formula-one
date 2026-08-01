@@ -6,6 +6,7 @@ export type Driver = {
     points: number,
     recentProfit: number,
     teamLogo: string,
+    photo: string,
 }
 
 export type RaceResult = {

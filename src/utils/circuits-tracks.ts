@@ -1,3 +1,5 @@
+import placeholderCircuitTrack from '../assets/icons/placeholder-white.png'
+
 import bahrain from '../assets/tracks/bahrain.png'
 import saudiarabian from '../assets/tracks/saudiarabian.png'
 import australian from '../assets/tracks/australian.png'
@@ -75,6 +77,6 @@ export const getCircuitTrack = (circuitName: string): string => {
         case 'Abu Dhabi Grand Prix':
             return abudhabi;
         default:
-            return '';
+            return placeholderCircuitTrack;
     }
 }

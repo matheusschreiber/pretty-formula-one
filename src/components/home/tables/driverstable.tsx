@@ -22,7 +22,7 @@ export default function DriversTable() {
             <table className="w-full border-separate border-spacing-y-2 px-4 pb-4">
                 <thead>
                     <tr>
-                        <th colSpan={2} className='text-left px-2 text-gray-light text-[.6rem]'>ALL TIME</th>
+                        <th colSpan={2} className='text-left px-2 text-gray-light text-[.6rem]'>Standings</th>
                     </tr>
                 </thead>
                 <motion.tbody layout>

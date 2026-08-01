@@ -3,7 +3,8 @@ import { Context } from "../context-provider";
 import { CarouselSelector } from "./carousel";
 import CircuitMap from "./circuit-map";
 import TelemetryPageCard from "./telemetry-card";
-import TyreStrategyCard from "./tyre-strategy";
+import ChampionshipCard from "./championship-card";
+import ReplayModeCard from "./replaymode-card";
 
 export default function Misc() {
     
@@ -39,7 +40,7 @@ export default function Misc() {
     }
     
     return (
-        <div className="min-h-screen flex flex-col justify-between">
+        <div className="flex flex-col justify-between">
             <div className="flex justify-center items-center gap-10">
                 <CarouselSelector
                     label="Season"
@@ -64,7 +65,9 @@ export default function Misc() {
                 <div className="flex flex-col justify-between gap-5 mt-5">
                     <CircuitMap round={round} />
                     <TelemetryPageCard round={round} />
-                    <TyreStrategyCard round={round} />
+                    <ChampionshipCard year={year} rounds={rounds} />
+                    {/* <TyreStrategyCard round={round} /> */}
+                    <ReplayModeCard year={year} round={round} />
                 </div>
             )}
             
