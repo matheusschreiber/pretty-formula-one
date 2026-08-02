@@ -1,52 +1,29 @@
 import { useMemo, useRef, useState } from 'react';
-import type { RoundStandings } from '../../utils/championship';
-import type { Driver } from '../../utils/types';
+import type { DriverStandings, RoundStandings } from '../../utils/championship';
 import { TEAM_COLORS } from '../../utils/teams-colors';
 
 interface Props {
     standingsPerRound: RoundStandings[];
+    driverStandingsEvolution: DriverStandings[];
 }
 
-interface DriverSeries {
-    driver: Driver;
-    points: number[];
-    finalPoints: number;
-}
-
-export default function ChampionshipStandingsGraph({ standingsPerRound }: Props) {
+export default function ChampionshipStandingsGraph({ 
+        standingsPerRound, 
+        driverStandingsEvolution 
+    }: Props) {
+        
     const INTERNAL_WIDTH = 900;
     const INTERNAL_HEIGHT = 520;
     const PAD_LEFT = 70;
     const PAD_RIGHT = 70;
     const PAD_TOP = 100;
     const PAD_BOTTOM = 100;
-    
-    const series: DriverSeries[] = useMemo(() => {
-        if (standingsPerRound.length === 0) return [];
-        const map = new Map<string, DriverSeries>();
-        standingsPerRound.forEach((roundStandings, i) => {
-            roundStandings.standings.forEach(standing => {
-                if (!map.has(standing.driver.id)) {
-                    map.set(standing.driver.id, {
-                        driver: standing.driver,
-                        points: new Array(standingsPerRound.length).fill(0),
-                        finalPoints: 0,
-                    });
-                }
-                map.get(standing.driver.id)!.points[i] = standing.points;
-            });
-        });
-        const arr = Array.from(map.values());
-        arr.forEach(s => { s.finalPoints = s.points[s.points.length - 1]; });
-        arr.sort((a, b) => b.finalPoints - a.finalPoints);
-        return arr;
-    }, [standingsPerRound]);
 
     const maxPoints = useMemo(() => {
         let m = 0;
-        for (const s of series) for (const p of s.points) if (p > m) m = p;
+        for (const s of driverStandingsEvolution) for (const p of s.standings.map(st => st.totalPoints)) if (p > m) m = p;
         return Math.max(m, 10);
-    }, [series]);
+    }, [driverStandingsEvolution]);
 
     const roundCount = standingsPerRound.length;
     const usableW = INTERNAL_WIDTH - PAD_LEFT - PAD_RIGHT;
@@ -55,7 +32,7 @@ export default function ChampionshipStandingsGraph({ standingsPerRound }: Props)
     const driverStrokeDashArray: Record<string, string> = useMemo(() => {
         const usedColors = new Set<string>();
         const dashArray: Record<string, string> = {};
-        for (const s of series) {
+        for (const s of driverStandingsEvolution) {
             const color = TEAM_COLORS[s.driver.team] || '#888';
             if (!usedColors.has(color)) {
                 usedColors.add(color);
@@ -65,7 +42,7 @@ export default function ChampionshipStandingsGraph({ standingsPerRound }: Props)
             }
         }
         return dashArray;
-    }, [series]);
+    }, [driverStandingsEvolution]);
 
     const getX = (i: number) =>
         PAD_LEFT + (roundCount <= 1 ? 0 : (i / (roundCount - 1)) * usableW);
@@ -79,8 +56,8 @@ export default function ChampionshipStandingsGraph({ standingsPerRound }: Props)
 
     const labelPositions = useMemo(() => {
         const MIN_GAP = 11;
-        const sorted = series
-            .map(s => ({ id: s.driver.id, y: getY(s.finalPoints) }))
+        const sorted = driverStandingsEvolution
+            .map(s => ({ id: s.driver.id, y: getY(s.standings[s.standings.length - 1].totalPoints) }))
             .sort((a, b) => a.y - b.y);
         for (let i = 1; i < sorted.length; i++) {
             if (sorted[i].y - sorted[i - 1].y < MIN_GAP) {
@@ -90,7 +67,7 @@ export default function ChampionshipStandingsGraph({ standingsPerRound }: Props)
         const out: Record<string, number> = {};
         sorted.forEach(s => { out[s.id] = s.y; });
         return out;
-    }, [series, maxPoints, roundCount]);
+    }, [driverStandingsEvolution, maxPoints, roundCount]);
 
     const buildPath = (points: number[]) =>
         points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${getX(i)} ${getY(p)}`).join(' ');
@@ -132,9 +109,6 @@ export default function ChampionshipStandingsGraph({ standingsPerRound }: Props)
 
     return (
         <div className="p-10 rounded-3xl border border-gray-primary overflow-hidden">
-            <div className="mb-4 text-[0.6rem] uppercase tracking-widest text-gray-light">
-                Championship Standings Evolution
-            </div>
             <div className="relative">
                 <svg
                     ref={svgRef}
@@ -245,12 +219,12 @@ export default function ChampionshipStandingsGraph({ standingsPerRound }: Props)
                         );
                     })}
 
-                    {series.map(s => {
+                    {driverStandingsEvolution.map(s => {
                         const color = TEAM_COLORS[s.driver.team] || '#888';
                         return (
                             <path
                                 key={s.driver.id}
-                                d={buildPath(s.points)}
+                                d={buildPath(s.standings.map(st => st.totalPoints))}
                                 fill="none"
                                 stroke={color}
                                 strokeWidth="1.5"
@@ -262,9 +236,9 @@ export default function ChampionshipStandingsGraph({ standingsPerRound }: Props)
                         );
                     })}
 
-                    {series.map(s => {
+                    {driverStandingsEvolution.map(s => {
                         const color = TEAM_COLORS[s.driver.team] || '#888';
-                        const finalY = getY(s.finalPoints);
+                        const finalY = getY(s.standings[s.standings.length - 1].totalPoints);
                         const labelY = labelPositions[s.driver.id];
                         return (
                             <g key={`label-${s.driver.id}`}>
@@ -282,7 +256,7 @@ export default function ChampionshipStandingsGraph({ standingsPerRound }: Props)
                                     dominantBaseline="middle"
                                     className="font-mono"
                                 >
-                                    {s.driver.abbreviation} {s.finalPoints}
+                                    {s.driver.abbreviation} {s.standings[s.standings.length - 1].totalPoints}
                                 </text>
                             </g>
                         );

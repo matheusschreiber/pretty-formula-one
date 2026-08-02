@@ -1,11 +1,12 @@
 import { useContext, useEffect, useState } from "react";
 import { Context } from "../components/context-provider";
-import { getChampionshipStandings, type RoundStandings } from "../utils/championship";
+import { getDriverStandingEvolution, getStandingsPerRound, type DriverStandings, type RoundStandings } from "../utils/championship";
 import ChampionshipStandingsGraph from "../components/graphs/championship-standings";
 import { useSearchParams } from "react-router-dom";
 import CustomSelect from "../components/graphs/select";
 import Loading from "../components/loading";
 import Header from "../components/header";
+import ChampionshipStandingsTable from "../components/graphs/championship-standings-table";
 
 export default function Championship() {
 
@@ -13,6 +14,7 @@ export default function Championship() {
     const { rounds, years, year, setYear } = context;
 
     const [standingsPerRound, setStandingsPerRound] = useState<RoundStandings[]>([]);
+    const [driverStandingsEvolution, setDriverStandingsEvolution] = useState<DriverStandings[]>([]);
 
     const  [searchParams, setSearchParams] = useSearchParams();
     const [loading, setLoading] = useState(true);
@@ -25,8 +27,12 @@ export default function Championship() {
     }, [searchParams]);
 
     useEffect(()=>{
-        let standings = getChampionshipStandings(rounds)
-        setStandingsPerRound(standings)
+        const d = getDriverStandingEvolution(rounds)
+        setDriverStandingsEvolution(d)
+
+        const s = getStandingsPerRound(rounds)
+        setStandingsPerRound(s)
+        
         setLoading(false)
     }, [rounds]);
 
@@ -54,9 +60,14 @@ export default function Championship() {
 
             </div>
 
-
-
-            <ChampionshipStandingsGraph standingsPerRound={standingsPerRound} />
+            <div className="flex flex-col gap-10">
+                <ChampionshipStandingsGraph 
+                    standingsPerRound={standingsPerRound} 
+                    driverStandingsEvolution={driverStandingsEvolution} />
+                    
+                <ChampionshipStandingsTable 
+                    driverStandingsEvolution={driverStandingsEvolution} />
+            </div>
         </div>
     )
 }

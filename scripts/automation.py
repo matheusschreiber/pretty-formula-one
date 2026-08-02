@@ -144,6 +144,8 @@ def create_drivers_json(year):
     seen_drivers = set()
     for _, row in session.results.iterrows():
         driver_slug = f"{row['DriverId']}_{year}"
+        photo_url = row["HeadshotUrl"] if row["HeadshotUrl"] else ""
+        photo_url = photo_url.replace(".png.transform/1col/image.png",".png.transform/4col/image.png")
         if driver_slug not in seen_drivers:
             drivers_list.append({
                 "id": driver_slug,
@@ -151,7 +153,7 @@ def create_drivers_json(year):
                 "abbreviation": row["Abbreviation"],
                 "name": row["FullName"],
                 "teamLogo": f"/assets/icons/{row['TeamName'].lower().replace(' ', '-')}.png",
-                "photo": row["HeadshotUrl"].replace(".png.transform/1col/image.png",".png.transform/4col/image.png")
+                "photo": photo_url
             })
             seen_drivers.add(driver_slug)
     return drivers_list

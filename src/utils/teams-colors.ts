@@ -12,7 +12,7 @@ export const TEAM_COLORS: Record<string, string> = {
     'Cadillac': '#F1BE48',
     'Sauber': '#52E252',
     'Kick Sauber': '#52E252',
-    'Audi': '#00E5E5',
+    'Audi': '#FF2D00',
     'AlphaTauri': '#2B4562',
     'Alfa Romeo': '#900000',
 };

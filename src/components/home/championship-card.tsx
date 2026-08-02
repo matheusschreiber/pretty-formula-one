@@ -83,7 +83,6 @@ export default function ChampionshipCard({ year, rounds }: Props) {
     if (!year || !rounds || rounds.length === 0) {
         return <></>;
     }
-    console.log({year, rounds})
 
     return (
         <Link
