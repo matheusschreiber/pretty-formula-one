@@ -135,27 +135,28 @@ def update_rounds_json(drivers_json, rounds_json, year, rounds_to_process):
         
 
 def create_drivers_json(year):
-    schedule = fastf1.get_event_schedule(year)
-    passed_events = schedule[schedule['EventDate'] < datetime.now()]  # noqa: DTZ005
-    last_event_name = passed_events.iloc[-1]['EventName']
-    session = fastf1.get_session(year, last_event_name, 'R')
-    session.load(laps=False, telemetry=False, weather=False)
+    schedule_df = fastf1.get_event_schedule(year)
+    races = schedule_df["RoundNumber"][schedule_df["RoundNumber"] > 0].tolist()
     drivers_list = []
     seen_drivers = set()
-    for _, row in session.results.iterrows():
-        driver_slug = f"{row['DriverId']}_{year}"
-        photo_url = row["HeadshotUrl"] if row["HeadshotUrl"] else ""
-        photo_url = photo_url.replace(".png.transform/1col/image.png",".png.transform/4col/image.png")
-        if driver_slug not in seen_drivers:
-            drivers_list.append({
-                "id": driver_slug,
-                "team": row["TeamName"],
-                "abbreviation": row["Abbreviation"],
-                "name": row["FullName"],
-                "teamLogo": f"/assets/icons/{row['TeamName'].lower().replace(' ', '-')}.png",
-                "photo": photo_url
-            })
-            seen_drivers.add(driver_slug)
+    print("\tFetching drivers for race ", end="", flush=True)
+    for race in races:
+        print(f"{race} ", end="", flush=True)
+        session = fastf1.get_session(year, race, 'R')
+        session.load(laps=False, telemetry=False, weather=False)
+        for _, row in session.results.iterrows():
+            driver_slug = f"{row['DriverId']}_{year}"
+            if driver_slug not in seen_drivers:
+                drivers_list.append({
+                    "id": driver_slug,
+                    "team": row["TeamName"],
+                    "abbreviation": row["Abbreviation"],
+                    "name": row["FullName"],
+                    "teamLogo": f"/assets/icons/{row['TeamName'].lower().replace(' ', '-')}.png",
+                    "photo": row["HeadshotUrl"].replace(".png.transform/1col/image.png",".png.transform/4col/image.png")
+                })
+                seen_drivers.add(driver_slug)
+        print(" Done.")
     return drivers_list
     
 
@@ -195,10 +196,15 @@ def get_last_round(rounds_json):
 
 
 def upload_to_aws(client, file_content, folder, filename):
+    data_type = {
+        "json": "application/json",
+        "csv": "text/csv"
+    }
     client.put_object(
         Bucket=BUCKET_NAME, 
         Key=f"{folder}/{filename}", 
-        Body=file_content
+        Body=file_content,
+        ContentType=data_type[filename.split('.')[-1]],
     )
     print(f"Uploaded {filename} to AWS S3 bucket {BUCKET_NAME}.")
     
@@ -286,18 +292,46 @@ def get_available_rounds(year):
     return available_rounds
 
 
+def fix_files_metadata(s3_aws_client):
+    paginator = s3_aws_client.get_paginator("list_objects_v2")
+    pages = paginator.paginate(Bucket=BUCKET_NAME, Prefix="")
+    updated_count = 0
+    skipped_count = 0
+    for page in pages:
+        if "Contents" not in page:
+            continue
+        for obj in page["Contents"]:
+            key = obj["Key"]
+            if key.endswith(".json"):
+                head = s3_aws_client.head_object(Bucket=BUCKET_NAME, Key=key)
+                current_content_type = head.get("ContentType")
+                current_content_disp = head.get("ContentDisposition")
+                needs_update = (
+                    current_content_type != "application/json"
+                    or current_content_disp != "inline"
+                )
+                if needs_update:
+                    print(
+                        f"Updating metadata for: {key} "
+                        f"(Current: Type='{current_content_type}', Disposition='{current_content_disp}')"
+                    )
+                    s3_aws_client.copy_object(
+                        Bucket=BUCKET_NAME,
+                        Key=key,
+                        CopySource={"Bucket": BUCKET_NAME, "Key": key},
+                        ContentType="application/json",
+                        ContentDisposition="inline",
+                        MetadataDirective="REPLACE",
+                    )
+                    updated_count += 1
+                else:
+                    print(f"Skipping {key} (Metadata already correct)")
+                    skipped_count += 1
+
+    print(f"\nFinished! Updated: {updated_count}, Skipped: {skipped_count}")
+
+
 if __name__ == "__main__":
-    
-    year = datetime.now().year  # noqa: DTZ005
-    
-    print(f"Starting automation script for year {year}...")
-    
-    available_rounds = get_available_rounds(year)
-    if not available_rounds:
-        print(f"No available rounds found for year {year}. Exiting.")
-        sys.exit(0)
-        
-    print(f"Available rounds for year {year}: {available_rounds}")
     
     print(f"Connecting to AWS S3 bucket {BUCKET_NAME}...", end="", flush=True)
     
@@ -309,6 +343,19 @@ if __name__ == "__main__":
     )
     
     print(" [Connected]")
+    
+    year = datetime.now().year  # noqa: DTZ005
+    
+    year=2021
+    
+    print(f"Starting automation script for year {year}...")
+    
+    # available_rounds = get_available_rounds(year)
+    # if not available_rounds:
+    #     print(f"No available rounds found for year {year}. Exiting.")
+    #     sys.exit(0)
+        
+    # print(f"Available rounds for year {year}: {available_rounds}")
     
     print(f"Fetching existing rounds and drivers JSON from AWS S3 for year {year}...")
     
@@ -330,45 +377,45 @@ if __name__ == "__main__":
     else:
         print(f"Existing drivers JSON found for year {year}.")
     
-    print(f"Processing rounds data for year {year}...")
+    # print(f"Processing rounds data for year {year}...")
     
-    last_round = get_last_round(rounds_json)
-    rounds_to_process = [r for r in available_rounds if r > last_round]
-    if rounds_to_process:
-        rounds_json = update_rounds_json(drivers_json, rounds_json, year, rounds_to_process)
-        upload_to_aws(
-            client=s3_aws_client,
-            file_content=json.dumps(rounds_json),
-            folder=year, 
-            filename=f"rounds_{year}.json"
-        )
+    # last_round = get_last_round(rounds_json)
+    # rounds_to_process = [r for r in available_rounds if r > last_round]
+    # if rounds_to_process:
+    #     rounds_json = update_rounds_json(drivers_json, rounds_json, year, rounds_to_process)
+    #     upload_to_aws(
+    #         client=s3_aws_client,
+    #         file_content=json.dumps(rounds_json),
+    #         folder=year, 
+    #         filename=f"rounds_{year}.json"
+    #     )
         
-        print("-"*40)
-        print(f"Updated rounds JSON for year {year} has been uploaded to AWS S3.")
-        print("-"*40)
-    else:
-        print("-"*40)
-        print(f"All rounds for year {year} have been processed. Exiting.")
-        print("-"*40)
+    #     print("-"*40)
+    #     print(f"Updated rounds JSON for year {year} has been uploaded to AWS S3.")
+    #     print("-"*40)
+    # else:
+    #     print("-"*40)
+    #     print(f"All rounds for year {year} have been processed. Exiting.")
+    #     print("-"*40)
         
-    print(f"Processing telemetry data for year {year}...")
+    # print(f"Processing telemetry data for year {year}...")
 
-    for driver in drivers_json:
-        last_round_driver = get_last_round_driver(year, driver["id"], telemetries_csvs_filenames)
-        unprocessed_rounds = [r for r in available_rounds if r > last_round_driver]
-        print(f"\nDriver {driver['id']} - Missing rounds: {unprocessed_rounds}")
-        for r in unprocessed_rounds:
-            telemetry = get_new_telemetry_csv(year, driver["id"], r)
-            if telemetry is None:
-                continue
-            print(len(telemetry.splitlines()), f"lines of telemetry data for driver {driver['id']} in round {r} {year}.")
-            upload_to_aws(
-                client=s3_aws_client,
-                file_content=telemetry,
-                folder=year,
-                filename=f"telemetry_{driver['id']}_{r}.csv"
-            )
+    # for driver in drivers_json:
+    #     last_round_driver = get_last_round_driver(year, driver["id"], telemetries_csvs_filenames)
+    #     unprocessed_rounds = [r for r in available_rounds if r > last_round_driver]
+    #     print(f"\nDriver {driver['id']} - Missing rounds: {unprocessed_rounds}")
+    #     for r in unprocessed_rounds:
+    #         telemetry = get_new_telemetry_csv(year, driver["id"], r)
+    #         if telemetry is None:
+    #             continue
+    #         print(len(telemetry.splitlines()), f"lines of telemetry data for driver {driver['id']} in round {r} {year}.")
+    #         upload_to_aws(
+    #             client=s3_aws_client,
+    #             file_content=telemetry,
+    #             folder=year,
+    #             filename=f"telemetry_{driver['id']}_{r}.csv"
+    #         )
     
-    print("-"*40)
-    print(f"Updated telemetry data for year {year} has been uploaded to AWS S3.")
-    print("-"*40)
+    # print("-"*40)
+    # print(f"Updated telemetry data for year {year} has been uploaded to AWS S3.")
+    # print("-"*40)
