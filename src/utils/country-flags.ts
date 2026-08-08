@@ -19,7 +19,10 @@ import mexico from "../assets/flags/Mexico.png"
 import brazil from "../assets/flags/Brazil.png"
 import qatar from "../assets/flags/Qatar.png"
 import uae from "../assets/flags/United Arab Emirates.png"
-
+import france from "../assets/flags/France.png"
+import portugal from "../assets/flags/Portugal.png"
+import russia from "../assets/flags/Russia.png"
+import turkey from "../assets/flags/Turkey.png"
 
 export const getCountryFlagIcon = (country:string | undefined) => {
     const countryFlags: { [key: string]: string } = {
@@ -34,6 +37,7 @@ export const getCountryFlagIcon = (country:string | undefined) => {
         "Canada": canada,
         "Spain": spain,
         "Austria": austria,
+        "Great Britain": britain,
         "United Kingdom": britain,
         "Hungary": hungary,
         "Belgium": belgium,
@@ -45,6 +49,10 @@ export const getCountryFlagIcon = (country:string | undefined) => {
         "Qatar": qatar,
         "United Arab Emirates": uae,
         "Abu Dhabi": uae,
+        "France": france,
+        "Portugal": portugal,
+        "Russia": russia,
+        "Turkey": turkey
     };
     return country ? countryFlags[country] : "";
 };

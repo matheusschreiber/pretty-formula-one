@@ -1,41 +1,31 @@
 import { createContext, useEffect, useState, type ReactNode } from 'react';
 import type { Driver, Round } from '../utils/types';
 import { getDrivers, getResults, getRounds, getYears } from '../utils/data';
+import { useSearchParams } from 'react-router-dom';
 
 interface ContextType {
-    loading: boolean;
-    
     drivers: Driver[];
-    
     rounds: Round[];
     round: Round;
-    setRound: (round: Round) => void; 
-
     years: number[];
     year: number;
-    setYear: (year: number) => void;
+
+    onChangeYear: (year: number) => Promise<void>;
+    onChangeRound: (roundIndex: number) => Promise<void>;
 }
 
-const initialContext: ContextType = {
-    loading: false,
-    
+export const Context = createContext<ContextType>({
     drivers: [],
-
     rounds: [],
     round: {} as Round,
-    setRound: () => {},
-    
     years: [],
-    year: new Date().getFullYear(),
-    setYear: () => {},
-};
-
-export const Context = createContext<ContextType>(initialContext);
+    year: 0,
+    onChangeYear: async (_: number) => {},
+    onChangeRound: async (_: number) => {},
+});
 
 export const ContextProvider = ({ children }: { children: ReactNode }) => {
 
-    const [loading, setLoading] = useState(false);
-    
     const [drivers, setDrivers] = useState<Driver[]>([]);
 
     const [rounds, setRounds] = useState<Round[]>([]);
@@ -44,65 +34,48 @@ export const ContextProvider = ({ children }: { children: ReactNode }) => {
     const [years, setYears] = useState<number[]>([]);    
     const [year, setYear] = useState<number>(new Date().getFullYear());
 
-    const fetchRoundsAndDrivers = async () => {
-        try {
-            const responseDrivers = await getDrivers(year)
-            const responseRounds = await getRounds(year)
-            const selectedRound = responseRounds.slice(-1)[0]
-            const responseResults = await getResults(selectedRound.index, responseDrivers, responseRounds);
-            setDrivers(responseResults.drivers);
-            setRound(responseResults.round);
-            setRounds(responseResults.rounds);
-        } catch (error) {
-            console.error(error);
+    const [searchParams, setSearchParams] = useSearchParams()
+
+    async function onChangeYear(newYear: number) {
+        setYears(await getYears());
+        setYear(newYear);
+        const responseDrivers = await getDrivers(newYear)
+        const responseRounds = await getRounds(newYear)
+        let roundParam = Number(searchParams.get("round"));
+        if (!roundParam || !responseRounds.find(r => r.index === roundParam)) {
+            roundParam = responseRounds.slice(-1)[0].index;
         }
+        const responseRoundResults = await getResults(roundParam, responseDrivers, responseRounds);
+        setRound(responseRoundResults.round);
+        setDrivers(responseRoundResults.drivers);
+        setRounds(responseRoundResults.rounds);
+        setSearchParams((prev) => {
+            prev.set("year", newYear.toString()); 
+            prev.set("round", roundParam.toString()); 
+            return prev;
+        });
     }
 
-    const fetchYears = async () => {
-        setLoading(true);
-        try {
-            const responseYears = await getYears();
-            setYears(responseYears);
-            const lastYear = responseYears.slice(-1)[0];
-            setYear(lastYear);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchRoundResults = async () => {
-        try {
-            const responseResults = await getResults(round.index, drivers, rounds);
-            setDrivers(responseResults.drivers);
-            setRounds(responseResults.rounds);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
+    async function onChangeRound(newRoundIndex: number) {
+        const responseRoundResults = await getResults(newRoundIndex, drivers, rounds);
+        setRound(responseRoundResults.round);
+        setDrivers(responseRoundResults.drivers);
+        setRounds(responseRoundResults.rounds);
+        setSearchParams((prev) => {
+            prev.set("round", responseRoundResults.round.index.toString()); 
+            return prev;
+        });
     }
 
     useEffect(() => {
-        fetchYears();
+        (async () => {
+            setYears(await getYears());
+            await onChangeYear(Number(searchParams.get("year")) || new Date().getFullYear());
+        })();
     }, []);
 
-    useEffect(() => {
-        fetchRoundsAndDrivers()
-    }, [year]);
-
-    useEffect(()=>{
-        fetchRoundResults()
-    }, [round])
-
     return (
-        <Context.Provider value={{
-            loading,
-            drivers,
-            rounds, round, setRound, 
-            years, year, setYear,
-        }}>
+        <Context.Provider value={{drivers, rounds, round, years, year, onChangeYear, onChangeRound }}>
             {children}
         </Context.Provider>
     );

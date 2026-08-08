@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import placeholderDriverIcon from '../../assets/icons/placeholder-white.png';
 import { Medal } from "lucide-react";
-import { getChampionshipStandings } from "../../utils/championship";
+import { getStandingsPerRound } from "../../utils/championship";
 import type { Round } from "../../utils/types";
 
 const scaleVariants: Variants = {
@@ -77,7 +77,7 @@ export default function ChampionshipCard({ year, rounds }: Props) {
     const [hovered, setHovered] = useState(false);
 
     const lastStandings = useMemo(()=>{
-        return getChampionshipStandings(rounds).slice(-1)[0].standings.slice(0, 4);
+        return getStandingsPerRound(rounds).slice(-1)[0].standings.slice(0, 4);
     }, [rounds]);
 
     if (!year || !rounds || rounds.length === 0) {

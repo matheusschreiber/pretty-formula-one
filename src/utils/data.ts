@@ -4,16 +4,17 @@ import { getTeamLogo } from "./teams-logos";
 import { getBackgroundImage } from "./circuits-backgrounds";
 
 const DATA_URL = import.meta.env.VITE_DATA_URL as string;
+const ENFORCE_CACHE_UPDATE = true?`?v=${Date.now()}`:''
 
 export async function getYears(): Promise<number[]> {
-    const responseYears = await fetch(`${DATA_URL}/years.meta`);
+    const responseYears = await fetch(`${DATA_URL}/years.meta${ENFORCE_CACHE_UPDATE}`);
     const data = await responseYears.text();
     let availableYears: number[] = data.split(",").map(Number);
     return availableYears.sort();
 }
 
 export async function getDrivers(year:number): Promise<Driver[]> {
-    const responseDrivers = await fetch(`${DATA_URL}/${year}/drivers_${year}.json`);
+    const responseDrivers = await fetch(`${DATA_URL}/${year}/drivers_${year}.json${ENFORCE_CACHE_UPDATE}`);
     const contentType = responseDrivers.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
         return [];
@@ -29,7 +30,7 @@ export async function getDrivers(year:number): Promise<Driver[]> {
 }
 
 export async function getRounds(year:number): Promise<Round[]> {
-    const responseRounds = await fetch(`${DATA_URL}/${year}/rounds_${year}.json`);
+    const responseRounds = await fetch(`${DATA_URL}/${year}/rounds_${year}.json${ENFORCE_CACHE_UPDATE}`);
     const contentType = responseRounds.headers.get("content-type");
     let rounds: Round[] = [];
     if (!contentType) {
@@ -101,7 +102,7 @@ export async function getResults(
 export async function getTimeToNextRace(): Promise<{ days: number, hours: number, minutes: number, weekendName: string }> {
     const now = new Date();
     const year = now.getFullYear();
-    const responseDates = await fetch(`${DATA_URL}/${year}/dates_${year}.json`);
+    const responseDates = await fetch(`${DATA_URL}/${year}/dates_${year}.json${ENFORCE_CACHE_UPDATE}`);
     const rawDates = await responseDates.json() as {name:string, date:string}[];
     
     // get next and last events
@@ -153,7 +154,7 @@ export async function getTimeToNextRace(): Promise<{ days: number, hours: number
 export async function getTelemetryData(driverId: string|undefined, roundIdx: number|undefined): Promise<string> {
     if (!driverId || !roundIdx) return "";
     const year = driverId.split("_").slice(-1)[0];
-    const response = await fetch(`${DATA_URL}/${year}/telemetry_${driverId}_${roundIdx}.csv`);
+    const response = await fetch(`${DATA_URL}/${year}/telemetry_${driverId}_${roundIdx}.csv${ENFORCE_CACHE_UPDATE}`);
     // const contentType = response.headers.get("content-type");
     // if (!contentType || !contentType.includes("text/csv")) {
     //     return "";

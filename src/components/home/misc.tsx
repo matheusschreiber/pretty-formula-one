@@ -7,32 +7,33 @@ import ChampionshipCard from "./championship-card";
 import ReplayModeCard from "./replaymode-card";
 
 export default function Misc() {
-    
+
     const { 
-        years, year, setYear,  
-        rounds, round, setRound
+        years, year,  
+        rounds, round,
+        onChangeYear, onChangeRound
     } = useContext(Context);
 
-    function getNextYear(){
-        setYear(years[years.indexOf(year)+1]); 
-        // setRound(rounds[0])
+    async function getNextYear(){
+        const nextYear = years[years.indexOf(year)+1]
+        await onChangeYear(nextYear);
     }
 
-    function getPreviousYear(){
-        setYear(years[years.indexOf(year)-1]); 
-        // setRound(rounds[0])
+    async function getPreviousYear(){
+        const prevYear = years[years.indexOf(year)-1]
+        await onChangeYear(prevYear);
     }
 
-    function getNextRound(){
+    async function getNextRound(){
         const nextIndex = Math.max(1, Math.min(round.index + 1, rounds.length));
         const nextRound = rounds.find(r => r.index === nextIndex);
-        if (nextRound) setRound(nextRound);
+        await onChangeRound(nextRound?.index || 1);
     }
 
-    function getPreviousRound(){
+    async function getPreviousRound(){
         const prevIndex = Math.max(1, Math.min(round.index - 1, rounds.length));
         const prevRound = rounds.find(r => r.index === prevIndex);
-        if (prevRound) setRound(prevRound);
+        await onChangeRound(prevRound?.index || 1);
     }
 
     if (!round || rounds.length === 0 || !year || years.length === 0) {

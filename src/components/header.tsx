@@ -9,34 +9,25 @@ import tagheuerSeconds from '../assets/clocks/tagheuer/seconds.png'
 import { getTimeToNextRace } from '../utils/data';
 
 export default function Header() {
-    const [days, setDays] = useState(0);
-    const [hours, setHours] = useState(0);
-    const [minutes, setMinutes] = useState(0);
-    const [seconds, setSeconds] = useState(0);
+    const [time, setTime] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
     const [weekendName, setWeekendName] = useState("");
 
     useEffect(() => {
-        const updateCountdown = () => {
-            getTimeToNextRace().then((time) => {
-                setDays(time.days)
-                setHours(time.hours)
-                setMinutes(time.minutes)
-                setWeekendName(time.weekendName.toUpperCase())
-            })
-        };
-
-        updateCountdown();
+        getTimeToNextRace().then((t) => {
+            setTime({ days: t.days, hours: t.hours, minutes: t.minutes, seconds: 0 });
+            setWeekendName(t.weekendName.toUpperCase())
+        })
         
         const interval = setInterval(() => {
-            setSeconds(prev => (prev + 1) % 60);
+            setTime(prev => ({ ...prev, seconds: (prev.seconds + 1) % 60 }));
         }, 1000);
 
         return () => clearInterval(interval);
     }, []);
 
-    const secondsDeg = seconds * 6;
-    const minutesDeg = minutes * 6;
-    const hoursDeg = (hours % 12) * 30 + (minutes / 60) * 30;
+    const secondsDeg = time.seconds * 6;
+    const minutesDeg = time.minutes * 6;
+    const hoursDeg = (time.hours % 12) * 30 + (time.minutes / 60) * 30;
 
     return (
         <header className='flex items-center px-10'>
@@ -51,17 +42,17 @@ export default function Header() {
                         <p className='text-[.7rem]'>{weekendName} WEEKEND {new Date().getFullYear()}</p>
                         <div className='flex gap-4 mt-1 pt-1 items-center border-t border-t-gray-light'>
                             <div className='flex flex-col items-center'>
-                                <p className='text-xl font-mono'>{days.toString().padStart(2, '0')}</p>
+                                <p className='text-xl font-mono'>{time.days.toString().padStart(2, '0')}</p>
                                 <p className='text-[0.6rem] text-gray-light'>DAYS</p>
                             </div>
                             <div className='h-10 border border-gray-light'></div>
                             <div className='flex flex-col items-center'>
-                                <p className='text-xl font-mono'>{hours.toString().padStart(2, '0')}</p>
+                                <p className='text-xl font-mono'>{time.hours.toString().padStart(2, '0')}</p>
                                 <p className='text-[0.6rem] text-gray-light'>HOURS</p>
                             </div>
                             <div className='h-10 border border-gray-light'></div>
                             <div className='flex flex-col items-center'>
-                                <p className='text-xl font-mono'>{minutes.toString().padStart(2, '0')}</p>
+                                <p className='text-xl font-mono'>{time.minutes.toString().padStart(2, '0')}</p>
                                 <p className='text-[0.6rem] text-gray-light'>MINS</p>
                             </div>
                         </div>

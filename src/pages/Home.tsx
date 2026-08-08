@@ -10,33 +10,28 @@ import Loading from '../components/loading'
 
 function App() {
 
-    const context = useContext(Context)
-    const { loading } = context;
+    const { rounds } = useContext(Context);
+    
+    const loading = rounds.length === 0;
+    if (loading) return <Loading />;
 
     return (
         <>
-            {loading ? (
-                <Loading />
-            ) : (
-                <>
-                <div className="w-full min-h-screen">
-                    <Header />
-                    <div className='mt-10 lg:flex lg:gap-5 justify-center hidden'>
-                        <DriversTable />
-                        <Misc />
-                        <RaceTable />
-                    </div>
-
-                    <div className='mt-10 flex flex-col justify-center lg:hidden'>
-                        <Misc />
-                        <DriversTable />
-                        <RaceTable />
-                    </div>
+            <div className="w-full min-h-screen">
+                <Header />
+                <div className='mt-10 lg:flex lg:gap-5 justify-center hidden'>
+                    <DriversTable />
+                    <Misc />
+                    <RaceTable />
                 </div>
-                <Footer />
-                </>
-            )}
 
+                <div className='mt-10 flex flex-col justify-center lg:hidden'>
+                    <Misc />
+                    <DriversTable />
+                    <RaceTable />
+                </div>
+            </div>
+            <Footer />
         </>
     )
 }

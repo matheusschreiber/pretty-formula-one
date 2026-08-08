@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useMemo } from "react";
 import { Context } from "../components/context-provider";
 import { getDriverStandingEvolution, getStandingsPerRound, type DriverStandings, type RoundStandings } from "../utils/championship";
 import ChampionshipStandingsGraph from "../components/graphs/championship-standings";
@@ -8,34 +8,24 @@ import Loading from "../components/loading";
 import Header from "../components/header";
 import ChampionshipStandingsTable from "../components/graphs/championship-standings-table";
 
+interface AllStandingsData {
+    standingsPerRound: RoundStandings[];
+    driverStandingsEvolution: DriverStandings[];
+}
+
 export default function Championship() {
 
-    const context = useContext(Context);
-    const { rounds, years, year, setYear } = context;
+    const { rounds, years } = useContext(Context);
 
-    const [standingsPerRound, setStandingsPerRound] = useState<RoundStandings[]>([]);
-    const [driverStandingsEvolution, setDriverStandingsEvolution] = useState<DriverStandings[]>([]);
+    const [searchParams, setSearchParams] = useSearchParams();
 
-    const  [searchParams, setSearchParams] = useSearchParams();
-    const [loading, setLoading] = useState(true);
-
-    useEffect(()=>{
-        if (searchParams.get("year")) {
-            setYear(Number(searchParams.get("year")));
-            setLoading(true)
-        }
-    }, [searchParams]);
-
-    useEffect(()=>{
-        const d = getDriverStandingEvolution(rounds)
-        setDriverStandingsEvolution(d)
-
-        const s = getStandingsPerRound(rounds)
-        setStandingsPerRound(s)
-        
-        setLoading(false)
-    }, [rounds]);
-
+    const data = useMemo<AllStandingsData>(() => ({
+        standingsPerRound: getStandingsPerRound(rounds),
+        driverStandingsEvolution: getDriverStandingEvolution(rounds),
+    }), [rounds]);
+    
+    const targetYear = Number(searchParams.get("year"));
+    const loading = rounds.length === 0 || rounds[0].year !== targetYear;
     if (loading) return <Loading />;
 
     return (
@@ -56,17 +46,17 @@ export default function Championship() {
                         return prev;
                     })}
                     options={years.map((y) => ({ id: y.toString(), name: y.toString() }))}
-                    selectedOption={{ id: year.toString(), name: year.toString() }} />
+                    selectedOption={{ id: searchParams.get("year")?.toString(), name: searchParams.get("year")?.toString() }} />
 
             </div>
 
             <div className="flex flex-col gap-10">
                 <ChampionshipStandingsGraph 
-                    standingsPerRound={standingsPerRound} 
-                    driverStandingsEvolution={driverStandingsEvolution} />
+                    standingsPerRound={data.standingsPerRound} 
+                    driverStandingsEvolution={data.driverStandingsEvolution} />
                     
                 <ChampionshipStandingsTable 
-                    driverStandingsEvolution={driverStandingsEvolution} />
+                    driverStandingsEvolution={data.driverStandingsEvolution} />
             </div>
         </div>
     )

@@ -49,14 +49,13 @@ export default function Graphs() {
     const currentTime = useTelemetryTimer(maxTime);
 
     const context = useContext(Context);
-    const { drivers, rounds, years, year, setYear } = context;
+    const { drivers, round, rounds, years, year } = context;
 
     const [loading, setLoading] = useState(true);
     const [searchParams, setSearchParams] = useSearchParams();
 
     const [driver1, setDriver1] = useState<Driver>();
     const [driver2, setDriver2] = useState<Driver>();
-    const [round, setRound] = useState<Round>();
 
     const [dnfDriverId, setDNFDriverId] = useState<string | null>(null);
 
@@ -75,14 +74,6 @@ export default function Graphs() {
         const rawDriver2Param = searchParams.get("driver2");
         const foundDriver2 = drivers.find(d => d.id === rawDriver2Param) ?? drivers[0];
         setDriver2(foundDriver2);
-
-        const rawYearParam = searchParams.get("year");
-        const foundYear = years.find(y => y.toString() === rawYearParam) ?? years[0];
-        setYear(foundYear);
-
-        const rawRoundParam = searchParams.get("round");
-        const foundRound = rounds.find(r => r.index.toString() === rawRoundParam) ?? rounds[0];
-        setRound(foundRound);
 
         setLoading(false);
     }, [searchParams, years, drivers, rounds]);

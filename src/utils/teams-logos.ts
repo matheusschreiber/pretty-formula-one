@@ -46,6 +46,7 @@ export const getTeamLogo = (team:string) => {
         case 'AlphaTauri':
             return alphatauri;
         case 'Alfa Romeo':
+        case 'Alfa Romeo Racing':
             return alpharomeo;
         default:
             return '';

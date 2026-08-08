@@ -24,6 +24,10 @@ import saopaulo from '../assets/tracks/saopaulo.png'
 import lasvegas from '../assets/tracks/lasvegas.png'
 import qatar from '../assets/tracks/qatar.png'
 import abudhabi from '../assets/tracks/abudhabi.png'
+import france from "../assets/tracks/france.png"
+import portugal from "../assets/tracks/portugal.png"
+import russia from "../assets/tracks/russia.png"
+import turkey from "../assets/tracks/turkey.png"
 
 export const getCircuitTrack = (circuitName: string): string => {
     switch (circuitName) {
@@ -49,6 +53,7 @@ export const getCircuitTrack = (circuitName: string): string => {
         case 'Spanish Grand Prix':
             return spanish;
         case 'Austrian Grand Prix':
+        case 'Styrian Grand Prix':
             return austrian;
         case 'British Grand Prix':
             return british;
@@ -76,6 +81,14 @@ export const getCircuitTrack = (circuitName: string): string => {
             return qatar;
         case 'Abu Dhabi Grand Prix':
             return abudhabi;
+        case 'French Grand Prix':
+            return france;
+        case 'Portuguese Grand Prix':
+            return portugal;
+        case 'Russian Grand Prix':
+            return russia;
+        case 'Turkish Grand Prix':
+            return turkey;
         default:
             return placeholderCircuitTrack;
     }

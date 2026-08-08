@@ -30,24 +30,26 @@ export default function ChampionshipStandingsTable({driverStandingsEvolution}:Pr
         <div className="p-10 rounded-3xl border border-gray-primary overflow-hidden">
             <table className="w-full text-center border-collapse font-mono">
                 <thead>
-                    <th></th>
-                    {
-                        driverStandingsEvolution[0].standings.map((s, colIdx) => (
-                            <th key={s.round.id}
-                                onMouseEnter={() => setHoveredCol(colIdx)}
-                                onMouseLeave={() => setHoveredCol(null)}
-                                className="relative">
-                                <span
-                                    className={`absolute left-1/2 -translate-x-1/2 bottom-full mb-1 whitespace-nowrap text-xs uppercase tracking-wide pointer-events-none transition-opacity ${hoveredCol === colIdx ? 'opacity-100' : 'opacity-0'}`}
-                                >
-                                    {s.round.name}
-                                </span>
-                                <img src={getCountryFlagIcon(s.round.country)}
-                                    title={s.round.name} 
-                                    alt={s.round.country} className="h-5 my-5 mx-auto" /> 
-                            </th>
-                        ))
-                    }
+                    <tr>
+                        <th></th>
+                        {
+                            driverStandingsEvolution[0]?.standings.map((s, colIdx) => (
+                                <th key={s.round.id}
+                                    onMouseEnter={() => setHoveredCol(colIdx)}
+                                    onMouseLeave={() => setHoveredCol(null)}
+                                    className="relative">
+                                    <span
+                                        className={`absolute left-1/2 -translate-x-1/2 bottom-full mb-1 whitespace-nowrap text-xs uppercase tracking-wide pointer-events-none transition-opacity ${hoveredCol === colIdx ? 'opacity-100' : 'opacity-0'}`}
+                                    >
+                                        {s.round.name}
+                                    </span>
+                                    <img src={getCountryFlagIcon(s.round.country)}
+                                        title={s.round.name} 
+                                        alt={s.round.country} className="h-5 my-5 mx-auto" /> 
+                                </th>
+                            ))
+                        }
+                    </tr>
                 </thead>
                 <tbody>
                     {

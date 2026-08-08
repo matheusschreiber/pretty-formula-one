@@ -48,6 +48,7 @@ export function getDriverStandingEvolution(rounds: Round[]): DriverStandings[] {
     const map = new Map<string, DriverStandings>();
     rounds.forEach((round, i) => {
         round.results.forEach((result, j) => {
+            if (!result.driver) console.log(result)
             if (!map.has(result.driver_id)) {
                 map.set(result.driver_id, {
                     driver: result.driver as Driver,
