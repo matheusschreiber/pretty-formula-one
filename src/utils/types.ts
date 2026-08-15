@@ -28,6 +28,7 @@ export type Round = {
     id: number,
     index: number,
     totalRounds: number,
+    totalLaps: number,
     name: string,
     nameVerbose: string,
     country: string,

@@ -117,6 +117,7 @@ def update_rounds_json(drivers_json, rounds_json, year, rounds_to_process):
                 "year": year,
                 "index": int(event_info["RoundNumber"]),
                 "totalRounds": total_rounds,
+                "totalLaps": race_session.total_laps,
                 "name": event_info["EventName"],
                 "nameVerbose": event_info["OfficialEventName"],
                 "country": country,
@@ -168,6 +169,7 @@ def create_rounds_json(year):
 def get_aws_files(s3_aws_client, year):
     print(f"Fetching files from AWS S3 for year {year}...")
     telemetries_csvs_filenames = []
+    replays_json_filenames = []
     rounds_json = {}
     drivers_json = {}
     
@@ -181,18 +183,14 @@ def get_aws_files(s3_aws_client, year):
             elif key.endswith(f'drivers_{year}.json'):
                 drivers_obj = s3_aws_client.get_object(Bucket=BUCKET_NAME, Key=key)
                 drivers_json = json.loads(drivers_obj['Body'].read().decode('utf-8'))
-            elif key.startswith(f'{year}/telemetry_') and key.endswith('.csv'):
-                telemetry_key = key.split(f'{year}/')[1]
+            elif "telemetry_" in key and key.endswith('.csv'):
+                telemetry_key = key.split('/')[-1]
                 telemetries_csvs_filenames.append(telemetry_key)
-    print(f"Fetched {len(rounds_json)} rounds, {len(drivers_json)} drivers, and {len(telemetries_csvs_filenames)} telemetry files from AWS S3 for year {year}.")
-    return rounds_json, drivers_json, telemetries_csvs_filenames
-
-
-def get_last_round(rounds_json):
-    if not rounds_json:
-        return 0
-    last_round = max(r['index'] for r in rounds_json)
-    return last_round
+            elif "replay_" in key and key.endswith('.json'):
+                replay_key = key.split('/')[-1]
+                replays_json_filenames.append(replay_key)
+    print(f"Fetched {len(rounds_json)} rounds, {len(drivers_json)} drivers, {len(telemetries_csvs_filenames)} telemetry files, and {len(replays_json_filenames)} replay files from AWS S3 for year {year}.")
+    return rounds_json, drivers_json, telemetries_csvs_filenames, replays_json_filenames
 
 
 def upload_to_aws(client, file_content, folder, filename):
@@ -207,14 +205,6 @@ def upload_to_aws(client, file_content, folder, filename):
         ContentType=data_type[filename.split('.')[-1]],
     )
     print(f"Uploaded {filename} to AWS S3 bucket {BUCKET_NAME}.")
-    
-    
-def get_last_round_driver(year, driver_id, telemetries_csvs_filenames):
-    driver_files = [f for f in telemetries_csvs_filenames if f.startswith(f'telemetry_{driver_id}_')]
-    if not driver_files:
-        return 0
-    last_round_driver = max(int(f.split(f'_{year}_')[1].split('.')[0]) for f in driver_files)
-    return last_round_driver
 
 
 def get_new_telemetry_csv(year, driver_id, round_id):
@@ -329,6 +319,19 @@ def fix_files_metadata(s3_aws_client):
                     skipped_count += 1
 
     print(f"\nFinished! Updated: {updated_count}, Skipped: {skipped_count}")
+    
+
+def get_unprocessed_round_driver_telemetry(available_rounds, driver_id, telemetries_csvs_filenames):
+    driver_rounds_filenames = [f for f in telemetries_csvs_filenames if f.startswith(f'telemetry_{driver_id}_')]
+    processed_rounds = [int(f.split(f'_{driver_id}_')[1].split('.')[0]) for f in driver_rounds_filenames]
+    unprocessed_rounds = [r for r in available_rounds if r not in processed_rounds]
+    return unprocessed_rounds
+
+
+def get_unprocessed_round_replay(available_rounds, replays_json_filenames):
+    processed_rounds = {int(f.split('_race_')[1].split('_lap_')[0]) for f in replays_json_filenames}
+    unprocessed_rounds = [r for r in available_rounds if r not in processed_rounds]
+    return unprocessed_rounds
 
 
 if __name__ == "__main__":
@@ -346,20 +349,18 @@ if __name__ == "__main__":
     
     year = datetime.now().year  # noqa: DTZ005
     
-    year=2021
-    
     print(f"Starting automation script for year {year}...")
     
-    # available_rounds = get_available_rounds(year)
-    # if not available_rounds:
-    #     print(f"No available rounds found for year {year}. Exiting.")
-    #     sys.exit(0)
+    available_rounds = get_available_rounds(year)
+    if not available_rounds:
+        print(f"No available rounds found for year {year}. Exiting.")
+        sys.exit(0)
         
-    # print(f"Available rounds for year {year}: {available_rounds}")
+    print(f"Available rounds for year {year}: {available_rounds}")
     
     print(f"Fetching existing rounds and drivers JSON from AWS S3 for year {year}...")
     
-    rounds_json, drivers_json, telemetries_csvs_filenames = get_aws_files(s3_aws_client, year)
+    rounds_json, drivers_json, telemetries_csvs_filenames, replays_json_filenames = get_aws_files(s3_aws_client, year)
     rounds_json = rounds_json if rounds_json else create_rounds_json(year)
     
     print(f"Processing drivers data for year {year}...")
@@ -377,45 +378,128 @@ if __name__ == "__main__":
     else:
         print(f"Existing drivers JSON found for year {year}.")
     
-    # print(f"Processing rounds data for year {year}...")
+    print(f"Processing rounds data for year {year}...")
     
-    # last_round = get_last_round(rounds_json)
-    # rounds_to_process = [r for r in available_rounds if r > last_round]
-    # if rounds_to_process:
-    #     rounds_json = update_rounds_json(drivers_json, rounds_json, year, rounds_to_process)
-    #     upload_to_aws(
-    #         client=s3_aws_client,
-    #         file_content=json.dumps(rounds_json),
-    #         folder=year, 
-    #         filename=f"rounds_{year}.json"
-    #     )
+    processed_rounds = [r['index'] for r in rounds_json]
+    rounds_to_process = [r for r in available_rounds if r not in processed_rounds]
+    if rounds_to_process:
+        rounds_json = update_rounds_json(drivers_json, rounds_json, year, rounds_to_process)
+        upload_to_aws(
+            client=s3_aws_client,
+            file_content=json.dumps(rounds_json),
+            folder=year, 
+            filename=f"rounds_{year}.json"
+        )
         
-    #     print("-"*40)
-    #     print(f"Updated rounds JSON for year {year} has been uploaded to AWS S3.")
-    #     print("-"*40)
-    # else:
-    #     print("-"*40)
-    #     print(f"All rounds for year {year} have been processed. Exiting.")
-    #     print("-"*40)
+        print("-"*40)
+        print(f"Updated rounds JSON for year {year} has been uploaded to AWS S3.")
+        print("-"*40)
+    else:
+        print("-"*40)
+        print(f"All rounds for year {year} have been processed. Exiting.")
+        print("-"*40)
         
-    # print(f"Processing telemetry data for year {year}...")
+    print(f"Processing telemetry data for year {year}...")
 
-    # for driver in drivers_json:
-    #     last_round_driver = get_last_round_driver(year, driver["id"], telemetries_csvs_filenames)
-    #     unprocessed_rounds = [r for r in available_rounds if r > last_round_driver]
-    #     print(f"\nDriver {driver['id']} - Missing rounds: {unprocessed_rounds}")
-    #     for r in unprocessed_rounds:
-    #         telemetry = get_new_telemetry_csv(year, driver["id"], r)
-    #         if telemetry is None:
-    #             continue
-    #         print(len(telemetry.splitlines()), f"lines of telemetry data for driver {driver['id']} in round {r} {year}.")
-    #         upload_to_aws(
-    #             client=s3_aws_client,
-    #             file_content=telemetry,
-    #             folder=year,
-    #             filename=f"telemetry_{driver['id']}_{r}.csv"
-    #         )
+    for driver in drivers_json:
+        rounds_to_process = get_unprocessed_round_driver_telemetry(available_rounds, driver["id"], telemetries_csvs_filenames)
+        print(f"\nDriver {driver['id']} - Missing rounds: {rounds_to_process}")
+        for r in rounds_to_process:
+            telemetry = get_new_telemetry_csv(year, driver["id"], r)
+            if telemetry is None:
+                # print(f"No telemetry data available for driver {driver['id']} in round {r} {year}.")
+                continue
+            else:
+                print(len(telemetry.splitlines()), f"lines of telemetry data for driver {driver['id']} in round {r} {year}.")
+            upload_to_aws(
+                client=s3_aws_client,
+                file_content=telemetry,
+                folder=f"{year}/telemetries/race_{r}",
+                filename=f"telemetry_{driver['id']}_{r}.csv"
+            )
+            print()
     
-    # print("-"*40)
-    # print(f"Updated telemetry data for year {year} has been uploaded to AWS S3.")
-    # print("-"*40)
+    print("-"*40)
+    print(f"Updated telemetry data for year {year} has been uploaded to AWS S3.")
+    print("-"*40)
+    
+    print(f"Processing replay data for year {year}...")
+    
+    rounds_to_process = get_unprocessed_round_replay(available_rounds, replays_json_filenames)
+    for race in rounds_to_process:
+        
+        print(f"Processing race {race}...")
+        
+        session = fastf1.get_session(year, race, "R")
+        session.load(laps=True, telemetry=True, weather=False)
+        lap_replays = [[] for _ in range(session.total_laps)]
+        
+        for idx, driver in enumerate(drivers_json):
+            driver_slug = driver["id"]
+            driver_laps = session.laps.pick_drivers(driver["abbreviation"])
+            if driver_laps.empty:
+                print(f"\tNo laps found for driver {driver_slug} in race {race}. Skipping replay data for this driver.")
+                continue
+            
+            print(f"\tProcessing driver [{idx+1}/{len(drivers_json)}] {driver_slug}...........", end="", flush=True)
+            
+            best_sectors = [float('inf'), float('inf'), float('inf')]
+            best_lap_time = float('inf')
+            
+            for driver_lap in driver_laps.iterlaps():            
+                lap_telemetry = driver_lap[1].get_telemetry()
+                lap_number = int(driver_lap[1]['LapNumber'])
+                
+                best_sectors = [
+                    min(best_sectors[0], driver_lap[1]['Sector1Time'].total_seconds()),
+                    min(best_sectors[1], driver_lap[1]['Sector2Time'].total_seconds()),
+                    min(best_sectors[2], driver_lap[1]['Sector3Time'].total_seconds()),
+                ]
+                
+                best_sectors = [0.0 if bs == float('inf') else bs for bs in best_sectors]
+                
+                best_lap_time = min(best_lap_time, driver_lap[1]['LapTime'].total_seconds())
+                
+                for _, row in lap_telemetry.iterrows():   
+                    lap_replays[lap_number - 1].append({
+                        "driver": driver_slug,
+                        "lap_number": lap_number,
+                        "x": round(row['X'], 2),
+                        "y": round(row['Y'], 2),
+                        "z": round(row['Z'], 2),
+                        "time": row['Time'].total_seconds(),
+                        "position": driver_lap[1]['Position'], 
+                        "compound": driver_lap[1]['Compound'],
+                        "stint": driver_lap[1]['TyreLife'],
+                        "gap_to_leader": 0, # TODO:
+                        "gap_to_front": 0, # TODO:
+                        "current_best_lap_time": best_lap_time,
+                        "last_lap_time": driver_lap[1]['LapTime'].total_seconds(),
+                        "current_sector_times": [
+                            driver_lap[1]['Sector1Time'].total_seconds() if driver_lap[1]['Sector1Time'].total_seconds() > 0 else 0.0,
+                            driver_lap[1]['Sector2Time'].total_seconds() if driver_lap[1]['Sector2Time'].total_seconds() > 0 else 0.0,
+                            driver_lap[1]['Sector3Time'].total_seconds() if driver_lap[1]['Sector3Time'].total_seconds() > 0 else 0.0,
+                        ],
+                        "best_sector_time": best_sectors,
+                        "is_in_pit": type(driver_lap[1]["PitInTime"].total_seconds()) is float, # TODO:
+                        "is_retired": False, # TODO:
+                    })
+            
+            print("[done]", flush=True)
+            
+        for idx, lap_replay in enumerate(lap_replays):
+            lap_replay.sort(key=lambda x: x['time'])
+            filename = f'data/{year}/replays/race_{race}/replay_{year}_race_{race}_lap_{idx+1}.json'
+            
+            upload_to_aws(
+                client=s3_aws_client,
+                file_content=lap_replay,
+                folder=f"{year}/replays/race_{race}",
+                filename=f"replay_{year}_race_{race}_lap_{idx+1}.json"
+            )
+            
+        print(f"Finished processing replay data for race {race}.")
+    
+    print("-"*40)
+    print(f"Updated replay data for year {year} has been uploaded to AWS S3.")
+    print("-"*40)

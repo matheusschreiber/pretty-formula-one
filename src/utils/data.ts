@@ -1,3 +1,6 @@
+import { parquetReadObjects } from "hyparquet";
+import { compressors } from "hyparquet-compressors";
+
 import type { Driver, Round } from "./types";
 
 import { getTeamLogo } from "./teams-logos";
@@ -7,6 +10,7 @@ const DATA_URL = import.meta.env.VITE_DATA_URL as string;
 const ENFORCE_CACHE_UPDATE = true?`?v=${Date.now()}`:''
 
 export async function getYears(): Promise<number[]> {
+    // TODO: change this to something more clever (dont use a meta file, but check the folders in the data dir)
     const responseYears = await fetch(`${DATA_URL}/years.meta${ENFORCE_CACHE_UPDATE}`);
     const data = await responseYears.text();
     let availableYears: number[] = data.split(",").map(Number);
@@ -154,11 +158,74 @@ export async function getTimeToNextRace(): Promise<{ days: number, hours: number
 export async function getTelemetryData(driverId: string|undefined, roundIdx: number|undefined): Promise<string> {
     if (!driverId || !roundIdx) return "";
     const year = driverId.split("_").slice(-1)[0];
-    const response = await fetch(`${DATA_URL}/${year}/telemetry_${driverId}_${roundIdx}.csv${ENFORCE_CACHE_UPDATE}`);
-    // const contentType = response.headers.get("content-type");
-    // if (!contentType || !contentType.includes("text/csv")) {
-    //     return "";
-    // }
+    const filename = `telemetry_${driverId}_${roundIdx}.csv`;
+    const response = await fetch(`${DATA_URL}/${year}/telemetries/race_${roundIdx}/${filename}${ENFORCE_CACHE_UPDATE}`);
     const data = await response.text();
     return data;
 }
+
+
+const REPLAY_NUMERIC_COLUMNS = new Set([
+    "lap_number", "x", "y", "z", "time", "position", "stint",
+    "gap_to_leader", "gap_to_front",
+    "current_best_lap_time", "last_lap_time",
+    "current_sector1_time", "current_sector2_time", "current_sector3_time",
+]);
+const REPLAY_BOOLEAN_COLUMNS = new Set(["is_in_pit", "is_retired"]);
+
+function toNumber(v: unknown): number {
+    if (typeof v === "number") return Number.isFinite(v) ? v : 0;
+    if (typeof v === "bigint") return Number(v);
+    if (v == null) return 0;
+    const n = Number(v as string);
+    return Number.isFinite(n) ? n : 0;
+}
+
+function toBestSectorTime(v: unknown): [number, number, number] {
+    if (Array.isArray(v)) {
+        return [toNumber(v[0]), toNumber(v[1]), toNumber(v[2])];
+    }
+    if (typeof v === "string") {
+        const inner = v.trim().replace(/^\[|\]$/g, '');
+        const parts = inner.split(',').map(p => toNumber(p.trim()));
+        return [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0];
+    }
+    return [0, 0, 0];
+}
+
+function normalizeReplayRow(row: Record<string, unknown>): Record<string, unknown> {
+    const out: Record<string, unknown> = {};
+    for (const key of Object.keys(row)) {
+        const raw = row[key];
+        if (key === "best_sector_time") {
+            out[key] = toBestSectorTime(raw);
+        } else if (REPLAY_NUMERIC_COLUMNS.has(key)) {
+            out[key] = toNumber(raw);
+        } else if (REPLAY_BOOLEAN_COLUMNS.has(key)) {
+            out[key] = raw === true || raw === "True" || raw === "true" || raw === 1 || raw === "1";
+        } else {
+            out[key] = raw ?? "";
+        }
+    }
+    return out;
+}
+
+export async function getReplayData(year: number, roundIdx: number): Promise<Record<string, unknown>[]> {
+    if (!roundIdx || !year) return [];
+    const filename = `replay_${year}_race_${roundIdx}.parquet`;
+    const url = `${DATA_URL}/${year}/replays/${filename}${ENFORCE_CACHE_UPDATE}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+        console.error('parquet fetch failed', response.status, url);
+        return [];
+    }
+    const buffer = await response.arrayBuffer();
+    try {
+        const rows = await parquetReadObjects({ file: buffer, compressors }) as Record<string, unknown>[];
+        return rows.map(normalizeReplayRow);
+    } catch (err) {
+        console.error('parquetReadObjects failed', err);
+        return [];
+    }
+}
+
