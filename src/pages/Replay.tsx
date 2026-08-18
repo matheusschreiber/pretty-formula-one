@@ -91,7 +91,7 @@ export default function Replay() {
                         round && (
                             <CustomSelect
                                 onSelect={(value) => changeRound(Number(value))}
-                                options={rounds}
+                                options={rounds.map((r) => ({ ...r, name: r.index.toString() + ' - ' + r.name.toString() }))}
                                 selectedOption={{ id: round.index, name: round.name }} />
                         )
                     }

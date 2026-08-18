@@ -49,8 +49,9 @@ export default function Graphs() {
     const currentTime = useTelemetryTimer(maxTime);
 
     const context = useContext(Context);
-    const { drivers, round, rounds, years, year } = context;
-
+    const { drivers, rounds, years, year, onChangeYear } = context;
+    
+    const [round, setRound] = useState<Round>();
     const [loading, setLoading] = useState(true);
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -58,25 +59,6 @@ export default function Graphs() {
     const [driver2, setDriver2] = useState<Driver>();
 
     const [dnfDriverId, setDNFDriverId] = useState<string | null>(null);
-
-    useEffect(() => {
-        if (years.length === 0 || drivers.length === 0 || rounds.length === 0) {
-            setLoading(false);
-            return;
-        }
-
-        setLoading(true);
-
-        const rawDriver1Param = searchParams.get("driver1");
-        const foundDriver1 = drivers.find(d => d.id === rawDriver1Param) ?? drivers[0];
-        setDriver1(foundDriver1);
-
-        const rawDriver2Param = searchParams.get("driver2");
-        const foundDriver2 = drivers.find(d => d.id === rawDriver2Param) ?? drivers[0];
-        setDriver2(foundDriver2);
-
-        setLoading(false);
-    }, [searchParams, years, drivers, rounds]);
 
     async function fetchTelemetryData(driverId: string, roundIndex: number) {
         const rawCsv = await getTelemetryData(driverId, roundIndex);
@@ -99,9 +81,18 @@ export default function Graphs() {
         });
     }
 
-    async function getTelemetry(driver1: Driver, driver2: Driver, round: Round) {
+    async function getTelemetry(driver1: Driver | undefined, driver2: Driver | undefined, round: Round | undefined) {
+        if (!driver1 || !driver2 || !round) return false;
+
+        let dnf = await checkDNF();
+        if (dnf) return false;
+
         const driver1ParsedData = await fetchTelemetryData(driver1.id, round.index);
         const driver2ParsedData = await fetchTelemetryData(driver2.id, round.index);
+
+        if (driver1ParsedData.length === 0 || driver2ParsedData.length === 0) {
+            return false;
+        }
 
         return {
             driver1: driver1ParsedData,
@@ -111,29 +102,112 @@ export default function Graphs() {
         };
     }
 
-    useEffect(() => {
-        if (!year || !driver1 || !driver2 || !round) {
-            setLoading(false);
-            return;
-        }
+    async function changeYear(newYear: number) {
+        setLoading(true)
+        await onChangeYear(newYear);
+    }
+
+    async function loadDriversAndRound() {
+        if (drivers.length === 0 || rounds.length === 0) return;
 
         setLoading(true);
 
-        setDNFDriverId(null);
+        const rawRoundParam = searchParams.get("round");
+        const foundRound = rounds.find(r => r.index.toString() === rawRoundParam) ?? rounds[0];
+        setRound(foundRound);
+
+        const rawDriver1Param = searchParams.get("driver1");
+        let foundDriver1 = drivers.find(d => d.id === rawDriver1Param) 
+        if (!foundDriver1) {
+            foundDriver1 = drivers[0];
+            setSearchParams((prev)=> {prev.set("driver1", drivers[0].id); return prev;});
+        }
+        setDriver1(foundDriver1);
+
+        const rawDriver2Param = searchParams.get("driver2");
+        let foundDriver2 = drivers.find(d => d.id === rawDriver2Param) 
+        if (!foundDriver2) {
+            foundDriver2 = drivers[1];
+            setSearchParams((prev)=> {prev.set("driver2", drivers[1].id); return prev;});
+        }
+        setDriver2(foundDriver2);
+        
+        const telemetry = await getTelemetry(foundDriver1, foundDriver2, foundRound);
+        if (telemetry) setTelemetryData(telemetry);
+
+        setLoading(false);
+    }
+
+    useEffect(()=> {
+        loadDriversAndRound();
+    }, [drivers, rounds])
+
+    async function changeRound(newRoundIndex: number) {
+        setLoading(true)
+
+        setSearchParams(prev => {
+            prev.set("round", newRoundIndex.toString());
+            return prev;
+        });
+        const foundRound = rounds.find(r => r.index === newRoundIndex) ?? rounds[0];
+        setRound(foundRound);
+
+        getTelemetry(driver1, driver2, foundRound).then((telemetry) => {
+            if (telemetry) setTelemetryData(telemetry);
+            setLoading(false);
+        });
+    }
+
+    async function checkDNF() {
+        if (!driver1 || !driver2 || !round) {
+            setDNFDriverId(null);
+            return false;
+        }
+
         round.results.forEach(result => {
             if (result.driver_id == driver1.id || result.driver_id == driver2.id) {
                 if (result.retired) {
                     setDNFDriverId(result.driver_id);
+                    return true
                 }
             }
         })
-        
-        getTelemetry(driver1, driver2, round).then((telemetry) => {
-            setTelemetryData(telemetry);
-            setLoading(false);
+
+        setDNFDriverId(null);
+        return false
+    }
+
+    async function changeDriver1(newDriverId: string) {
+        setLoading(true);
+        setSearchParams(prev => {
+            prev.set("driver1", newDriverId);
+            return prev;
         });
 
-    }, [driver1, driver2, round]);
+        const foundDriver = drivers.find(d => d.id === newDriverId) ?? drivers[0];
+        setDriver1(foundDriver);
+        
+        getTelemetry(foundDriver, driver2, round).then((telemetry) => {
+            if (telemetry) setTelemetryData(telemetry);
+            setLoading(false);
+        });
+    }
+
+    async function changeDriver2(newDriverId: string) {
+        setLoading(true);
+        setSearchParams(prev => {
+            prev.set("driver2", newDriverId);
+            return prev;
+        });
+
+        const foundDriver = drivers.find(d => d.id === newDriverId) ?? drivers[0];
+        setDriver2(foundDriver);
+
+        getTelemetry(driver1, foundDriver, round).then((telemetry) => {
+            if (telemetry) setTelemetryData(telemetry);
+            setLoading(false);
+        });
+    }
 
     function formatElapsedTime(seconds: number): string {
         const mins = Math.floor(seconds / 60);
@@ -159,7 +233,7 @@ export default function Graphs() {
     }
 
     return (
-        <div className="w-full min-h-[110vh]">
+        <div className="w-full">
             <Header />
 
             <div className="w-full flex items-center my-10 justify-center gap-5">
@@ -174,10 +248,7 @@ export default function Graphs() {
                 {
                     year && (
                         <CustomSelect
-                            onSelect={(value) => setSearchParams(prev => {
-                                prev.set("year", value);
-                                return prev;
-                            })}
+                            onSelect={(value) => changeYear(Number(value))}
                             options={years.map((y) => ({ id: y.toString(), name: y.toString() }))}
                             selectedOption={{ id: year.toString(), name: year.toString() }} />
                     )
@@ -185,10 +256,7 @@ export default function Graphs() {
                 {
                     driver1 && (
                         <CustomSelect
-                            onSelect={(value) => setSearchParams(prev => {
-                                prev.set("driver1", value);
-                                return prev;
-                            })}
+                            onSelect={(value) => changeDriver1(value)}
                             options={drivers.sort((a, b) => a.name.localeCompare(b.name))}
                             selectedOption={{ id: driver1.id, name: driver1.name }} />
                     )
@@ -196,10 +264,7 @@ export default function Graphs() {
                 {
                     driver2 && (
                         <CustomSelect
-                            onSelect={(value) => setSearchParams(prev => {
-                                prev.set("driver2", value);
-                                return prev;
-                            })}
+                            onSelect={(value) => changeDriver2(value)}
                             options={drivers.sort((a, b) => a.name.localeCompare(b.name))}
                             selectedOption={{ id: driver2.id, name: driver2.name }} />
                     )
@@ -207,57 +272,56 @@ export default function Graphs() {
                 {
                     round && (
                         <CustomSelect
-                            onSelect={(value) => setSearchParams(prev => {
-                                prev.set("round", value);
-                                return prev;
-                            })}
-                            options={rounds.sort((a, b) => a.name.localeCompare(b.name))}
+                            onSelect={(value) => changeRound(value)}
+                            options={rounds.map((r) => ({ ...r, name: r.index.toString() + ' - ' + r.name.toString() }))}
                             selectedOption={{ id: round.index, name: round.name }} />
                     )
                 }
             </div>
 
-            {dnfDriverId && (
-                <p className="text-center">
-                    The driver <strong>{dnfDriverId || "---"}</strong> didn't finish
-                    the <strong> {year} {round?.name || "---"}</strong>.
-                </p>
-            )}
+            <div className="min-h-screen">
 
-            {telemetryData && telemetryData.driver1.length > 0 && 
-                telemetryData.driver2.length > 0 && !dnfDriverId && (
-                <>
-                    <p className="text-center w-full text-gray-light">
-                        Showing the fastest laps of <strong>{driver1?.name || "---"}</strong> ({" "}
-                        <strong className="text-red-500">
-                            {formatElapsedTime(telemetryData.driver1[telemetryData.driver1.length - 1].seconds) || "---"}
-                        </strong>) and <strong>{driver2?.name || "---"}</strong> ({" "}
-                        <strong className="text-red-500">
-                            {formatElapsedTime(telemetryData.driver2[telemetryData.driver2.length - 1].seconds) || "---"}
-                        </strong>) on the
-                        <strong> {year} {round?.name || "---"}</strong>.
+                {dnfDriverId && (
+                    <p className="text-center">
+                        The driver <strong>{dnfDriverId || "---"}</strong> didn't finish
+                        the <strong> {year} {round?.name || "---"}</strong>.
                     </p>
-                    <div className="w-full flex justify-center p-8 gap-10">
-                        <div className="flex flex-col gap-10">
-                            <TrackMap telemetryData={telemetryData} currentTime={currentTime} />
-                            <div className="w-full flex justify-center gap-10">
-                                <GearGraph telemetryData={telemetryData} currentTime={currentTime} />
-                                <TyreGraph telemetryData={telemetryData} />
-                            </div>
-                        </div>
-                        <div className="flex flex-col gap-10">
-                            <BrakeThrottleGraph telemetryData={telemetryData} currentTime={currentTime} />
-                            <div className="flex gap-10">
-                                <RPMGraph telemetryData={telemetryData} currentTime={currentTime} />
-                                <AltitudeGraph telemetryData={telemetryData} currentTime={currentTime} />
-                            </div>
-                            <SpeedGraph telemetryData={telemetryData} currentTime={currentTime} />
-                        </div>
-                    </div>
-                    
-                </>
-            )}
+                )}
 
+                {telemetryData && telemetryData.driver1.length > 0 && 
+                    telemetryData.driver2.length > 0 && !dnfDriverId && (
+                    <>
+                        <p className="text-center w-full text-gray-light">
+                            Showing the fastest laps of <strong>{driver1?.name || "---"}</strong> ({" "}
+                            <strong className="text-red-500">
+                                {formatElapsedTime(telemetryData.driver1[telemetryData.driver1.length - 1].seconds) || "---"}
+                            </strong>) and <strong>{driver2?.name || "---"}</strong> ({" "}
+                            <strong className="text-red-500">
+                                {formatElapsedTime(telemetryData.driver2[telemetryData.driver2.length - 1].seconds) || "---"}
+                            </strong>) on the
+                            <strong> {year} {round?.name || "---"}</strong>.
+                        </p>
+                        <div className="w-full flex justify-center p-8 gap-10">
+                            <div className="flex flex-col gap-10">
+                                <TrackMap telemetryData={telemetryData} currentTime={currentTime} />
+                                <div className="w-full flex justify-center gap-10">
+                                    <GearGraph telemetryData={telemetryData} currentTime={currentTime} />
+                                    <TyreGraph telemetryData={telemetryData} />
+                                </div>
+                            </div>
+                            <div className="flex flex-col gap-10">
+                                <BrakeThrottleGraph telemetryData={telemetryData} currentTime={currentTime} />
+                                <div className="flex gap-10">
+                                    <RPMGraph telemetryData={telemetryData} currentTime={currentTime} />
+                                    <AltitudeGraph telemetryData={telemetryData} currentTime={currentTime} />
+                                </div>
+                                <SpeedGraph telemetryData={telemetryData} currentTime={currentTime} />
+                            </div>
+                        </div>
+                        
+                    </>
+                )}
+            </div>
             <Footer />
         </div>
 

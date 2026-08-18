@@ -69,13 +69,14 @@ export const ContextProvider = ({ children }: { children: ReactNode }) => {
 
     useEffect(() => {
         (async () => {
-            setYears(await getYears());
             await onChangeYear(Number(searchParams.get("year")) || new Date().getFullYear());
         })();
     }, []);
 
     return (
-        <Context.Provider value={{drivers, rounds, round, years, year, onChangeYear, onChangeRound }}>
+        <Context.Provider value={{
+            drivers, rounds, round, years, year, 
+            onChangeYear, onChangeRound }}>
             {children}
         </Context.Provider>
     );
