@@ -166,8 +166,8 @@ export async function getTelemetryData(driverId: string|undefined, roundIdx: num
 
 
 const REPLAY_NUMERIC_COLUMNS = new Set([
-    "lap_number", "x", "y", "z", "time", "position", "stint",
-    "gap_to_leader", "gap_to_front",
+    "lap_number", "x", "y", "z", "time", "position", "tyre_life",
+    "gap_to_leader", "gap_to_front", "speed",
     "current_best_lap_time", "last_lap_time",
     "current_sector1_time", "current_sector2_time", "current_sector3_time",
 ]);

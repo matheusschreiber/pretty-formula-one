@@ -71,7 +71,7 @@ export default function Replay() {
     return (
         <div className="w-full flex flex-col">
             <Header />
-            <div className="flex-1 min-h-0 max-w-5xl w-full mx-auto px-4 md:px-6 pb-3 flex flex-col">
+            <div className="flex-1 min-h-0 max-w-280 w-full mx-auto px-4 md:px-6 pb-3 flex flex-col">
                 <div className="flex gap-5 my-2 mt-10 mb-5">
                     <a href="/">
                         <button className="px-5 py-3 bg-zinc-900 border border-gray-primary rounded-lg shadow-xl cursor-pointer

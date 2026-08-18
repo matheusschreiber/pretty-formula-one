@@ -470,7 +470,7 @@ if __name__ == "__main__":
                         "time": row['Time'].total_seconds(),
                         "position": driver_lap[1]['Position'], 
                         "compound": driver_lap[1]['Compound'],
-                        "stint": driver_lap[1]['TyreLife'],
+                        "tyre_life": driver_lap[1]['TyreLife'],
                         "gap_to_leader": 0, # TODO:
                         "gap_to_front": 0, # TODO:
                         "current_best_lap_time": best_lap_time,

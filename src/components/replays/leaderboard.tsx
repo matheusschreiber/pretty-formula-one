@@ -18,9 +18,10 @@ export interface ReplayRecord {
     time: number;
     position: number;
     compound: string;
-    stint: number;
+    tyre_life: number;
     gap_to_leader: number;
     gap_to_front: number;
+    speed: number;
     current_best_lap_time: number;
     last_lap_time: number;
     current_sector1_time: number;
@@ -52,11 +53,6 @@ function formatLapTime(seconds: number): string {
 
 function formatGap(seconds: number): string {
     if (seconds === undefined || seconds === null || seconds <= 0) return '—';
-    if (seconds >= 60) {
-        const m = Math.floor(seconds / 60);
-        const s = seconds - m * 60;
-        return `+${m}:${s.toFixed(3).padStart(6, '0')}`;
-    }
     return `+${seconds.toFixed(3)}`;
 }
 
@@ -136,7 +132,8 @@ export default function Leaderboard({ entries, highlights, driverInfoMap }: Lead
                     <div className="w-16">Driver</div>
                     <div className="w-14">Tyre</div>
                     <div className="w-24">Last Lap</div>
-                    <div className="w-14">Gap</div>
+                    <div className="w-18">Gap Leader</div>
+                    <div className="w-18">Gap Ahead</div>
                     <div className="w-24">Best Lap</div>
                     <div className="w-52">Sectors</div>
                     <div className="w-52">Best Sectors</div>
@@ -208,8 +205,8 @@ export default function Leaderboard({ entries, highlights, driverInfoMap }: Lead
                                 </div>
 
                                 <div className="w-14 flex justify-center items-center gap-1">
-                                    <span className="font-mono text-white">
-                                        {r.lap_number}
+                                    <span className="font-mono text-white w-6 text-center">
+                                        {r.tyre_life}
                                     </span>
                                     {COMPOUND_ICON[compound] && (
                                         <img
@@ -225,11 +222,19 @@ export default function Leaderboard({ entries, highlights, driverInfoMap }: Lead
                                     {formatLapTime(r.last_lap_time)}
                                 </div>
 
-                                <div className="w-14 font-mono text-[0.7rem] text-center text-gray-light">
+                                <div className="w-18 font-mono text-center text-gray-light">
                                     {idx === 0 ? (
                                         <span className="text-yellow-300">LEADER</span>
                                     ) : (
-                                        formatGap(r.gap_to_leader)
+                                        r.is_in_pit ? '--' : formatGap(r.gap_to_leader)
+                                    )}
+                                </div>
+
+                                <div className="w-18 font-mono text-center text-gray-light">
+                                    {idx === 0 ? (
+                                        <span className="text-yellow-300">INTERVAL</span>
+                                    ) : (
+                                        r.is_in_pit ? '--' : formatGap(r.gap_to_front)
                                     )}
                                 </div>
 
@@ -238,9 +243,9 @@ export default function Leaderboard({ entries, highlights, driverInfoMap }: Lead
                                 </div>
 
                                 <div className="w-52 flex items-center gap-1 font-mono text-center">
-                                    <span className="flex-1 px-1">{formatSector(r.current_sector1_time)}</span>
-                                    <span className="flex-1 px-1">{formatSector(r.current_sector2_time)}</span>
-                                    <span className="flex-1 px-1">{formatSector(r.current_sector3_time)}</span>
+                                    <span className="flex-1 px-1">{r.is_in_pit ? '--' : formatSector(r.current_sector1_time)}</span>
+                                    <span className="flex-1 px-1">{r.is_in_pit ? '--' : formatSector(r.current_sector2_time)}</span>
+                                    <span className="flex-1 px-1">{r.is_in_pit ? '--' : formatSector(r.current_sector3_time)}</span>
                                 </div>
                                 
                                 <div className="w-52 flex items-center gap-1 font-mono text-center">
