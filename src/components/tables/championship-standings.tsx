@@ -160,9 +160,9 @@ export default function ChampionshipStandingsGraph({
                                     fontWeight={isHovered ? 'bold' : 'normal'}
                                     filter={axisFilter}
                                     className="font-mono uppercase"
-                                    transform={`translate(0, ${i % 5 === 0 ? 40 : i % 5 === 1 ? 30 : i % 5 === 2 ? 20 : i % 5 === 3 ? 10 : 0})`}
+                                    transform={`translate(0, ${i % 3 === 0 ? 20 : i % 3 === 1 ? 10 : 0})`}
                                 >
-                                    {rs.round.name}
+                                    {rs.round.name.replace(/ Grand Prix$/, '')}
                                 </text>
                                 <rect x={getX(i) - 2} y={INTERNAL_HEIGHT - PAD_BOTTOM - 2} width="1" height="8"
                                     fill={axisColor} filter={axisFilter} />

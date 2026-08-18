@@ -37,7 +37,9 @@ export const ContextProvider = ({ children }: { children: ReactNode }) => {
     const [searchParams, setSearchParams] = useSearchParams()
 
     async function onChangeYear(newYear: number) {
-        setYears(await getYears());
+        const responseYears = await getYears();
+        setYears(responseYears);
+        if (!responseYears.includes(newYear)) newYear = responseYears.slice(-1)[0];
         setYear(newYear);
         const responseDrivers = await getDrivers(newYear)
         const responseRounds = await getRounds(newYear)
