@@ -1,6 +1,6 @@
 # Automation script
 
-`automation.py` is a batch job that keeps the S3 bucket used by Pretty Formula One in sync with the latest Formula 1 season data. It pulls session data from [FastF1](https://docs.fastf1.dev/), incrementally updates `rounds_<year>.json`, and generates one telemetry CSV per driver per round.
+`automation/main.py` is a batch job that keeps the S3 bucket used by Pretty Formula One in sync with the latest Formula 1 season data. It pulls session data from [FastF1](https://docs.fastf1.dev/), incrementally updates `rounds_<year>.json`, and generates one telemetry CSV per driver per round.
 
 It is intended to be run **once after every race weekend**, either locally or from the provided Docker image.
 
