@@ -10,6 +10,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY automation/ ./automation/
 
-WORKDIR /app/automation
-
-CMD ["python", "main.py"]
+CMD ["python", "automation/main.py"]
