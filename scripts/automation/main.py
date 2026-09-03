@@ -7,7 +7,7 @@ from datetime import datetime
 import boto3
 from aws import get_aws_files, upload_to_aws
 from drivers import create_drivers_json
-from replay import create_replay_dataframes, get_unprocessed_round_replay
+from replay import create_replay_dataframe, get_unprocessed_round_replay
 from rounds import (
     create_rounds_json,
     get_available_rounds,
@@ -131,7 +131,7 @@ if __name__ == "__main__":
 
         for driver in drivers_json:
             rounds_to_process = get_unprocessed_round_driver_telemetry(available_rounds, driver["id"], telemetries_csvs_filenames)
-            print(f"\nDriver {driver['id']} - Missing rounds: {rounds_to_process}")
+            print(f"Driver {driver['id']} - Missing rounds: {rounds_to_process}")
             for r in rounds_to_process:
                 telemetry = get_new_telemetry_csv(year, driver["id"], r)
                 if telemetry is None:
@@ -157,8 +157,13 @@ if __name__ == "__main__":
         print(f"Processing replay data for year {year}...")
         
         rounds_to_process = get_unprocessed_round_replay(available_rounds, replays_parquet_filenames)
-        rounds_dfs = create_replay_dataframes(rounds_to_process, drivers_json, year)
-        for df, race in zip(rounds_dfs, rounds_to_process):
+        
+        print("Rounds to process for replay data:", rounds_to_process)
+        
+        for race in rounds_to_process:
+            
+            df = create_replay_dataframe(race, drivers_json, year)
+            
             if df is None:
                 continue
             else:
