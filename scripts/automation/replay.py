@@ -43,7 +43,6 @@ DTYPES = {
 }
 
 def get_unprocessed_round_replay(available_rounds, replays_parquet_filenames):
-    return [11] # TODO: remove this line after testing
     processed_rounds = {int(f.split('_race_')[1].split('.')[0]) for f in replays_parquet_filenames}
     unprocessed_rounds = [r for r in available_rounds if r not in processed_rounds]
     return unprocessed_rounds
