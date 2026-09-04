@@ -5,7 +5,6 @@ import type { Driver, Round } from "../../utils/types";
 import PlaybackControls from "./playback-controls";
 import Leaderboard from "./leaderboard";
 
-
 interface Props {
     records: ReplayRecord[];
     drivers: Driver[];
@@ -21,110 +20,43 @@ export default function ReplayTable({records, drivers, round, errorMsg}: Props) 
     const { time, playing, speed,
         setSpeed, togglePlay, seek } = useReplayPlayback(maxTime);
 
-    // the leaderboard waits some seconds after the position changes
-    // before actually updating the displayed order, to avoid flickering 
-    // when drivers are close together
-    const POSITION_HOLD_SECONDS = 1.5;
-
-    const positionsKey = useMemo(() => {
-        const MARGIN = 0.1; // TODO: this is weirdly specific
-        return records
-            .filter(r => Math.abs(r.time - time) <= MARGIN)
-            .map(r => `${r.driver}:${r.position}`)
-            .join('|');
-    }, [records, time]);
+    const recordsByDriver = useMemo(() => {
+        const map = new Map<string, ReplayRecord[]>();
+        for (const r of records) {
+            let arr = map.get(r.driver);
+            if (!arr) { arr = []; map.set(r.driver, arr); }
+            arr.push(r);
+        }
+        for (const arr of map.values()) arr.sort((a, b) => a.time - b.time);
+        return map;
+    }, [records]);
 
     const baseStates: LeaderboardEntry[] = useMemo(() => {
-        const MARGIN = 0.5; // TODO: this is weirdly specific
-        const recordsWindow = records.filter(r => Math.abs(r.time - time) <= MARGIN);
-        return drivers.map(driver => ({
-            driverId: driver.id,
-            record: recordsWindow.find(r => r.driver === driver.id) || ({} as ReplayRecord)
-        }));
-    }, [time, records, drivers]);
-
-    const [displayedOrder, setDisplayedOrder] = useState<string[]>([]);
-    const pendingSwapsRef = useRef<Map<string, number>>(new Map());
-    const lastTimeRef = useRef<number>(-1);
-
-    useEffect(() => {
-        if (baseStates.length === 0) return;
-
-        const actualPos = new Map(
-            baseStates.map(s => [s.driverId, s.record.position ?? Number.POSITIVE_INFINITY])
-        );
-
-        setDisplayedOrder(prevOrder => {
-            const driverSet = new Set(baseStates.map(s => s.driverId));
-            const orderValid =
-                prevOrder.length === baseStates.length &&
-                prevOrder.every(id => driverSet.has(id));
-
-            let order: string[];
-            if (!orderValid) {
-                order = [...baseStates]
-                    .sort((a, b) => (a.record.position ?? 999) - (b.record.position ?? 999))
-                    .map(s => s.driverId);
-                pendingSwapsRef.current.clear();
-            } else {
-                order = [...prevOrder];
-            }
-
-            if (
-                lastTimeRef.current < 0 ||
-                time < lastTimeRef.current ||
-                time - lastTimeRef.current > 5
-            ) {
-                pendingSwapsRef.current.clear();
-            }
-            lastTimeRef.current = time;
-
-            const pending = pendingSwapsRef.current;
-            let changed = true;
-            let passes = 0;
-            while (changed && passes < order.length) {
-                changed = false;
-                passes++;
-                for (let i = 0; i < order.length - 1; i++) {
-                    const a = order[i];
-                    const b = order[i + 1];
-                    const posA = actualPos.get(a) ?? Number.POSITIVE_INFINITY;
-                    const posB = actualPos.get(b) ?? Number.POSITIVE_INFINITY;
-                    const key = `${a}|${b}`;
-                    if (posA > posB) {
-                        const since = pending.get(key);
-                        if (since === undefined) {
-                            pending.set(key, time);
-                        } else if (time - since >= POSITION_HOLD_SECONDS) {
-                            order[i] = b;
-                            order[i + 1] = a;
-                            pending.delete(key);
-                            changed = true;
-                        }
-                    } else {
-                        pending.delete(key);
-                    }
+        return drivers.map(driver => {
+            const arr = recordsByDriver.get(driver.id);
+            let record: ReplayRecord | undefined;
+            if (arr && arr.length > 0) {
+                let lo = 0, hi = arr.length - 1, ans = -1;
+                while (lo <= hi) {
+                    const mid = (lo + hi) >> 1;
+                    if (arr[mid].time <= time) { ans = mid; lo = mid + 1; }
+                    else hi = mid - 1;
                 }
+                if (ans >= 0) record = arr[ans];
             }
-
-            const same =
-                order.length === prevOrder.length &&
-                order.every((v, i) => v === prevOrder[i]);
-            return same ? prevOrder : order;
+            return {
+                driverId: driver.id,
+                record: record || ({} as ReplayRecord),
+            };
         });
-    }, [positionsKey]);
+    }, [time, recordsByDriver, drivers]);
 
-    const currentStates: LeaderboardEntry[] = useMemo(() => {
-        const stateMap = new Map(baseStates.map(s => [s.driverId, s]));
-        if (displayedOrder.length === 0) {
-            return [...baseStates].sort(
-                (a, b) => (a.record.position ?? 999) - (b.record.position ?? 999)
-            );
-        }
-        return displayedOrder
-            .map(id => stateMap.get(id))
-            .filter((s): s is LeaderboardEntry => Boolean(s));
-    }, [displayedOrder, baseStates]);
+    const currentStates: LeaderboardEntry[] = useMemo(
+        () => [...baseStates].sort(
+            (a, b) => (a.record.position ?? 999) - (b.record.position ?? 999)
+        ),
+        [baseStates]
+    );
 
     const prevPositionsRef = useRef<Map<string, number>>(new Map());
     const highlightTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
