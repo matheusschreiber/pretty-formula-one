@@ -24,7 +24,7 @@ dist-ssr
 *.sw?
 .env
 */**/.env
-*/**/__pycache__
+*/**/__pycache__/
 
 venv
 scripts/data/
