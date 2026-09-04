@@ -197,11 +197,10 @@ def create_replay_dataframe(race, drivers_json, year):
     session = fastf1.get_session(year, race, "R")
     session.load(laps=True, telemetry=True, weather=False)
     
-    max_session_time = int(session.laps['Time'].max().total_seconds())
-    time_reference_range = range(max_session_time)
+    session_start_time = session.session_start_time.total_seconds()
+    total_drivers = len(drivers_json)
     
-    drivers_dict = {d["abbreviation"]: [] for d in drivers_json}
-    lap_replays = {k: drivers_dict.copy() for k in time_reference_range}
+    out_df = []
         
     for idx, driver in enumerate(drivers_json):
         driver_slug = driver["id"]
@@ -211,120 +210,140 @@ def create_replay_dataframe(race, drivers_json, year):
             print(f"\tNo laps found for driver {driver_slug} in race {race}. Skipping replay data for this driver.")
             continue
         
-        retired_lap = False
-        if len(driver_laps) < session.total_laps + 2:
-            retired_lap = driver_laps['LapNumber'].max() + 1
-        
-        print(f"\tProcessing driver [{idx+1}/{len(drivers_json)}] {driver_slug}{'.'*(30-len(driver_slug))}", end="", flush=True)
-        
-        best_sectors = [float('inf'), float('inf'), float('inf')]
-        best_lap_time = float('inf')
-        session_start_time = session.session_start_time.total_seconds()
+        print(f"\tProcessing driver [{idx+1:02d}/{len(drivers_json)}] {driver_slug}{'.'*(30-len(driver_slug))}", end="", flush=True)
         
         try:
-            for driver_lap in driver_laps.iterlaps():            
-                lap_telemetry = driver_lap[1].get_telemetry()
-                lap_number = int(driver_lap[1]['LapNumber'])
-                
-                sector1_time = driver_lap[1]['Sector1Time'].total_seconds()
-                sector2_time = driver_lap[1]['Sector2Time'].total_seconds()
-                sector3_time = driver_lap[1]['Sector3Time'].total_seconds()
-                
-                lap_time = driver_lap[1]['LapTime'].total_seconds()
-                
-                for _, row in lap_telemetry.iterrows():  
-                    
-                    curr_time_lap = row['Time'].total_seconds()
+            laps_telemetry = driver_laps.get_telemetry()
+        except Exception:  # noqa: BLE001
+            return None
 
-                    s1 = min(curr_time_lap, sector1_time) 
-                    s2 = min(curr_time_lap - s1, sector2_time)
-                    s3 = min(curr_time_lap - s1 - s2, sector3_time)
-                    
-                    position = int(driver_lap[1]['Position']) if not pd.isna(driver_lap[1]['Position']) else len(drivers_json)
-                    time = row['SessionTime'].total_seconds() - session_start_time
-                        
-                    speed_ms = row['Speed'] * 1000 / 3600 if not pd.isna(row['Speed']) else 0.0
-                    distance_ahead = row['DistanceToDriverAhead'] if not pd.isna(row['DistanceToDriverAhead']) else -1
-                    interval = distance_ahead / speed_ms if speed_ms > 0 else -1
-                    
-                    tyre_life = int(driver_lap[1]['TyreLife']) if not pd.isna(driver_lap[1]['TyreLife']) else 0
-                    is_in_pit = driver_lap[1]["PitInTime"] is not pd.NaT
-                    is_retired = lap_number >= retired_lap if retired_lap else False
-                    
-                    lap_replays[int(time)][driver_abv] = [
-                        driver_slug,                # 0 driver
-                        lap_number,                 # 1 lap_number
-                        round(row['X'], 2),         # 2 x
-                        round(row['Y'], 2),         # 3 y
-                        round(row['Z'], 2),         # 4 z
-                        round(time, 3),             # 5 time
-                        position,                   # 6 position
-                        driver_lap[1]['Compound'],  # 7 compound
-                        tyre_life,                  # 8 tyre_life
-                        0,                          # 9 gap_to_leader (calculated later)
-                        round(interval, 3),         # 10 gap_to_front
-                        round(speed_ms, 3),         # 11 speed
-                        round(best_lap_time, 3) if best_lap_time != float('inf') else 0.0,     # 12 current_best_lap_time
-                        round(lap_time, 3) if lap_number > 1 else 0.0,                         # 13 last_lap_time
-                        round(s1, 3) if s1 > 0 else 0.0,                                       # 14 current_sector1_time
-                        round(s2, 3) if s2 > 0 else 0.0,                                       # 15 current_sector2_time
-                        round(s3, 3) if s3 > 0 else 0.0,                                       # 16 current_sector3_time
-                        round(best_sectors[0], 3) if best_sectors[0] != float('inf') else 0.0, # 17 best_sector1_time
-                        round(best_sectors[1], 3) if best_sectors[1] != float('inf') else 0.0, # 18 best_sector2_time
-                        round(best_sectors[2], 3) if best_sectors[2] != float('inf') else 0.0, # 19 best_sector3_time
-                        is_in_pit,                  # 20 is_in_pit
-                        is_retired,                 # 21 is_retired
-                        "",                         # 22 current_minisectors (calculated later)
-                    ]
-                    
-                best_sectors = [
-                    min(best_sectors[0], sector1_time),
-                    min(best_sectors[1], sector2_time),
-                    min(best_sectors[2], sector3_time),
-                ]
-                
-                best_lap_time = min(best_lap_time, lap_time)
-            
-        except Exception as e:  # noqa: BLE001
-            print(f"\n\tError processing driver {driver_slug} in race {race}: {e}. Skipping replay data for this driver.")
+        if laps_telemetry.empty:
+            return None
+        
+        laps_meta = driver_laps[[
+            'LapNumber', 'Position', 'Compound', 'TyreLife', 'PitInTime',
+            'Sector1Time', 'Sector2Time', 'Sector3Time', 'LapTime', 'LapStartTime'
+        ]].copy()
+
+        for col in ['Sector1Time', 'Sector2Time', 'Sector3Time', 'LapTime']:
+            laps_meta[col + '_sec'] = laps_meta[col].dt.total_seconds().fillna(0.0).astype(np.float32)
+
+        laps_meta['best_lap'] = laps_meta['LapTime_sec'].replace(0.0, np.nan).cummin().fillna(0.0).astype(np.float32)
+        laps_meta['best_s1'] = laps_meta['Sector1Time_sec'].replace(0.0, np.nan).cummin().fillna(0.0).astype(np.float32)
+        laps_meta['best_s2'] = laps_meta['Sector2Time_sec'].replace(0.0, np.nan).cummin().fillna(0.0).astype(np.float32)
+        laps_meta['best_s3'] = laps_meta['Sector3Time_sec'].replace(0.0, np.nan).cummin().fillna(0.0).astype(np.float32)
+        laps_meta['is_in_pit'] = laps_meta['PitInTime'].notna() 
+        
+        laps_telemetry = laps_telemetry.sort_values('SessionTime')        
+        laps_meta = laps_meta.sort_values('LapStartTime')
+        
+        merged = pd.merge_asof(
+            laps_telemetry,
+            laps_meta,
+            left_on='SessionTime',
+            right_on='LapStartTime',
+            direction='backward'
+        )
+        
+        time_sec_float = (merged['SessionTime'].dt.total_seconds() - session_start_time).to_numpy()
+        merged['time_sec_int'] = np.floor(time_sec_float).astype(np.int32)
+        
+        merged = merged.drop_duplicates(subset=['time_sec_int'], keep='last').copy()
+        
+        time_arr = (merged['SessionTime'].dt.total_seconds() - session_start_time).to_numpy(dtype=np.float32)
+        curr_lap_time = merged.groupby('LapNumber')['Time'].transform(lambda s: s - s.iloc[0])
+        curr_lap_time = curr_lap_time.dt.total_seconds().to_numpy(dtype=np.float32)
+        
+        s1_target = merged['Sector1Time_sec'].to_numpy()
+        s2_target = merged['Sector2Time_sec'].to_numpy()
+        s3_target = merged['Sector3Time_sec'].to_numpy()
+
+        # extracting the current sector timestamp (multiple lap telemetry data points) 
+        # and clipping to not exceed the final sector times (single lap data point)
+        s1 = np.clip(curr_lap_time, 0, s1_target)
+        s2 = np.clip(curr_lap_time - s1, 0, s2_target)
+        s3 = np.clip(curr_lap_time - s1 - s2, 0, s3_target)
+
+        speed = merged['Speed'].fillna(0.0).to_numpy(dtype=np.float32)
+        speed_ms = speed * (1000.0 / 3600.0)
+        
+        dist_ahead = merged['DistanceToDriverAhead'].fillna(-1.0).to_numpy(dtype=np.float32)
+        interval = np.where(speed_ms > 0, dist_ahead / np.where(speed_ms > 0, speed_ms, 1.0), -1.0)
+
+        lap_numbers = merged['LapNumber'].to_numpy(dtype=np.uint16)
+        lap_times = merged['LapTime_sec'].to_numpy(dtype=np.float32)
+        last_lap_times = np.where(lap_numbers > 1, lap_times, 0.0)
+        
+        driver_result = session.results.loc[session.results['Abbreviation'] == driver_abv]
+        is_dnf = not driver_result.empty and driver_result['Status'].iloc[0] not in ['Finished', '+1 Lap', '+2 Laps']
+        final_lap = driver_laps['LapNumber'].max()
+        is_retired = (lap_numbers == final_lap) if is_dnf else False
+        
+        pre = pd.DataFrame({
+            "driver": driver_slug,
+            "driver_abv": driver_abv,
+            "lap_number": lap_numbers,
+            "x": merged['X'].round(2).to_numpy(dtype=np.float32),
+            "y": merged['Y'].round(2).to_numpy(dtype=np.float32),
+            "z": merged['Z'].round(2).to_numpy(dtype=np.float32),
+            "time": np.round(time_arr, 3),
+            "time_sec_int": merged['time_sec_int'].to_numpy(),
+            "position": merged['Position'].fillna(total_drivers).to_numpy(dtype=np.uint16),
+            "compound": merged['Compound'].astype(str),
+            "tyre_life": merged['TyreLife'].fillna(0).to_numpy(dtype=np.uint16),
+            "gap_to_leader": np.float32(0.0),
+            "gap_to_front": np.round(interval, 3).astype(np.float32),
+            "speed": np.round(speed_ms, 3).astype(np.float32),
+            "current_best_lap_time": np.round(merged['best_lap'], 3),
+            "last_lap_time": np.round(last_lap_times, 3),
+            "current_sector1_time": np.round(s1, 3),
+            "current_sector2_time": np.round(s2, 3),
+            "current_sector3_time": np.round(s3, 3),
+            "best_sector1_time": np.round(merged['best_s1'], 3),
+            "best_sector2_time": np.round(merged['best_s2'], 3),
+            "best_sector3_time": np.round(merged['best_s3'], 3),
+            "is_in_pit": merged['is_in_pit'].to_numpy(dtype=bool),
+            "is_retired": is_retired,
+            "current_minisectors": ""
+        })
+        
+        out_df.append(pre)
         
         print("[done]")
+        
+    out_df = pd.concat(out_df, ignore_index=True)
                
     print("Adding gap intervals and minisectors.....", end="", flush=True)
     
     # calculating gap_to_leader based on aggregated gap_to_front
-    for drivers in lap_replays.values():
-        acc_interval = 0
-        for pos in range(2, len(drivers_json)):
-            driver_row = [d for d in drivers.values() if len(d) > 0 and d[6] == pos]
-            if len(driver_row) == 0: continue
-            driver_row = driver_row[0]
-            acc_interval += driver_row[10]
-            driver_row[9] = round(acc_interval, 3)
+    out_df = out_df.sort_values(["time_sec_int", "position"]).reset_index(drop=True)
+    out_df["_valid_intervals"] = np.where(
+        (out_df["position"] > 1) & (out_df["gap_to_front"] > 0),
+        out_df["gap_to_front"],
+        0.0
+    )
+    out_df["gap_to_leader"] = (
+        out_df.groupby("time_sec_int")["_valid_intervals"]
+        .cumsum()
+        .round(3)
+        .astype(np.float32)
+    )
+    out_df.drop(columns=["_valid_intervals"], inplace=True)
         
     # calculating minisectors
     track_minisectors = TrackMinisectors(race, year)
     drivers_minisectors = initialize_drivers_minisectors(drivers_json, track_minisectors)
-    for drivers in lap_replays.values():
-        for driver in drivers.values():
-            if len(driver) == 0: continue
-            current_minisectors_string = get_current_minisectors(
-                drivers_minisectors, 
-                driver[5],         # time 
-                driver[2],         # x
-                driver[3],         # y
-                track_minisectors, 
-                driver[0],         # driver_slug
-                driver[20],        # is_in_pit
-            )
-            driver[22] = current_minisectors_string
+    out_df["current_minisectors"] = out_df.apply(lambda row: get_current_minisectors(
+        drivers_minisectors, 
+        row['time'],         # time 
+        row['x'],            # x
+        row['y'],            # y
+        track_minisectors,
+        row['driver'],       # driver_slug
+        row['is_in_pit'],    # is_in_pit
+    ), axis=1)
             
-    all_rows = [driver for drivers in lap_replays.values() for driver in drivers.values()]
-    all_rows = [row for row in all_rows if len(row) > 0]
-    df = pd.DataFrame(all_rows, columns=COLUMNS).astype(DTYPES)
-    df = df.sort_values("time").reset_index(drop=True)
-    
     print("[done]", flush=True)
     
-    return df
+    return out_df
         
