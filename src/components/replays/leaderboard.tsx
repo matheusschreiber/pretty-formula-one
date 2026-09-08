@@ -32,6 +32,7 @@ export interface ReplayRecord {
     best_sector3_time: number;
     is_in_pit: boolean;
     is_retired: boolean;
+    current_minisectors: string;
 }
 
 export interface LeaderboardEntry {
@@ -45,7 +46,7 @@ const COMPOUND_ICON: Record<string, string> = {
 };
 
 function formatLapTime(seconds: number): string {
-    if (!seconds || seconds <= 0) return '—';
+    if (!seconds || seconds <= 0 || seconds === 999) return '—';
     const m = Math.floor(seconds / 60);
     const s = seconds - m * 60;
     return `${m}:${s.toFixed(3).padStart(6, '0')}`;
@@ -57,7 +58,7 @@ function formatGap(seconds: number): string {
 }
 
 function formatSector(seconds: number | undefined): string {
-    if (!seconds || seconds <= 0) return '00.000';
+    if (!seconds || seconds <= 0 || seconds === 999) return '00.000';
     return seconds.toFixed(3);
 }
 
@@ -77,6 +78,37 @@ interface LeaderboardProps {
     entries: LeaderboardEntry[];
     highlights: Map<string, 'up' | 'down'>;
     driverInfoMap: Map<string, Driver>;
+}
+
+const MINISECTOR_COLORS: Record<string, string> = {
+    U: 'bg-gray-500/30',
+    G: 'bg-green-500',
+    P: 'bg-purple-500',
+    B: 'bg-blue-500',
+    Y: 'bg-yellow-500',
+};
+
+function SectorMinisectors({ minisectors, time, isInPit }: { minisectors: string; time: number; isInPit: boolean }) {
+    const chars = minisectors ? minisectors.split('') : [];
+    return (
+        <div className="flex-1 flex flex-col items-center gap-0.5 px-1">
+            <div className="flex w-full items-center gap-px h-1.5">
+                {chars.length === 0 ? (
+                    <div className="flex-1 h-full rounded-sm bg-gray-500/20" />
+                ) : (
+                    chars.map((c, i) => (
+                        <div
+                            key={i}
+                            className={`flex-1 h-full rounded-sm ${MINISECTOR_COLORS[c] ?? MINISECTOR_COLORS.U}`}
+                        />
+                    ))
+                )}
+            </div>
+            <span className="font-mono  leading-none text-gray-light">
+                {isInPit ? '--' : formatSector(time)}
+            </span>
+        </div>
+    );
 }
 
 function BestSectorCell({ value, isSessionBest }: { value: number; isSessionBest: boolean }) {
@@ -117,7 +149,7 @@ export default function Leaderboard({ entries, highlights, driverInfoMap }: Lead
 
     const lapClass = (current: number, overallBest: number): string => {
         if (!current || current <= 0) return '';
-        if (current === overallBest) return 'bg-purple-600/70 text-white rounded';
+        if (current === overallBest && current < 999) return 'bg-purple-600/70 text-white rounded';
         return '';
     }
 
@@ -135,7 +167,7 @@ export default function Leaderboard({ entries, highlights, driverInfoMap }: Lead
                     <div className="w-18">Gap Leader</div>
                     <div className="w-18">Gap Ahead</div>
                     <div className="w-24">Best Lap</div>
-                    <div className="w-52">Sectors</div>
+                    <div className="w-72">Sectors</div>
                     <div className="w-52">Best Sectors</div>
                     <div className="w-1" />
                 </div>
@@ -242,16 +274,23 @@ export default function Leaderboard({ entries, highlights, driverInfoMap }: Lead
                                     <span className={`flex-1 px-1 ${lapClass(r.current_best_lap_time, sessionBest.lap)}`}>{formatLapTime(r.current_best_lap_time)}</span>
                                 </div>
 
-                                <div className="w-52 flex items-center gap-1 font-mono text-center">
-                                    <span className="flex-1 px-1">{r.is_in_pit ? '--' : formatSector(r.current_sector1_time)}</span>
-                                    <span className="flex-1 px-1">{r.is_in_pit ? '--' : formatSector(r.current_sector2_time)}</span>
-                                    <span className="flex-1 px-1">{r.is_in_pit ? '--' : formatSector(r.current_sector3_time)}</span>
+                                <div className="w-72 flex items-center gap-1 text-center">
+                                    {(() => {
+                                        const parts = (r.current_minisectors || '').split('_');
+                                        return (
+                                            <>
+                                                <SectorMinisectors minisectors={parts[0] ?? ''} time={r.current_sector1_time} isInPit={r.is_in_pit} />
+                                                <SectorMinisectors minisectors={parts[1] ?? ''} time={r.current_sector2_time} isInPit={r.is_in_pit} />
+                                                <SectorMinisectors minisectors={parts[2] ?? ''} time={r.current_sector3_time} isInPit={r.is_in_pit} />
+                                            </>
+                                        );
+                                    })()}
                                 </div>
                                 
                                 <div className="w-52 flex items-center gap-1 font-mono text-center">
-                                    <BestSectorCell value={r.best_sector1_time} isSessionBest={r.best_sector1_time === sessionBest.s1 && r.best_sector1_time > 0} />
-                                    <BestSectorCell value={r.best_sector2_time} isSessionBest={r.best_sector2_time === sessionBest.s2 && r.best_sector2_time > 0} />
-                                    <BestSectorCell value={r.best_sector3_time} isSessionBest={r.best_sector3_time === sessionBest.s3 && r.best_sector3_time > 0} />
+                                    <BestSectorCell value={r.best_sector1_time} isSessionBest={r.best_sector1_time === sessionBest.s1 && r.best_sector1_time > 0 && r.best_sector1_time < 999} />
+                                    <BestSectorCell value={r.best_sector2_time} isSessionBest={r.best_sector2_time === sessionBest.s2 && r.best_sector2_time > 0 && r.best_sector2_time < 999} />
+                                    <BestSectorCell value={r.best_sector3_time} isSessionBest={r.best_sector3_time === sessionBest.s3 && r.best_sector3_time > 0 && r.best_sector3_time < 999} />
                                 </div>
 
                                 <div className="shrink-0">
