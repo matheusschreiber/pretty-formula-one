@@ -176,7 +176,7 @@ if __name__ == "__main__":
                 filename=f"replay_{year}_race_{race}.parquet",
                 BUCKET_NAME=BUCKET_NAME
             )
-                
+            
             print(f"Finished processing replay data for race {race}.")
         
         print("-"*40)

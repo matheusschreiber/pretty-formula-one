@@ -89,6 +89,7 @@ class TrackMinisectors:
         
         kdtree = KDTree(track_coords)
         best_times = [float('inf')] * len(track_x)
+        best_drivers = [""] * len(track_x)
         _, start_indices = np.unique(self.track_ms, return_index=True)
         end_indices = np.append(start_indices[1:], len(self.track_ms))
         mid_indices = (start_indices + end_indices) // 2
@@ -99,7 +100,8 @@ class TrackMinisectors:
                 track_coords[i][1],
                 track_s[i],
                 self.track_ms[i],
-                best_times[i]
+                best_times[i],
+                best_drivers[i],
             ])
         self.kdtree = kdtree
     
@@ -111,15 +113,19 @@ class TrackMinisectors:
         return result[0] if np.ndim(driver_x) == 0 else result
     
     def get_minisector_best_time_by_index(self, minisector_idx):
-        return self.track_minisectors_points[minisector_idx][4]
+        return [
+            self.track_minisectors_points[minisector_idx][4],
+            self.track_minisectors_points[minisector_idx][5],
+        ]
     
-    def update_minisector_best_time(self, minisector_idx, best_time):
+    def update_minisector_best_time(self, minisector_idx, best_time, best_driver):
         self.track_minisectors_points[minisector_idx] = (
             self.track_minisectors_points[minisector_idx][0],
             self.track_minisectors_points[minisector_idx][1],
             self.track_minisectors_points[minisector_idx][2],
             self.track_minisectors_points[minisector_idx][3],
-            best_time
+            best_time,
+            best_driver
         )
         
     def get_track_minisectors_points(self):
@@ -178,9 +184,13 @@ def get_current_minisectors(drivers_minisectors, session_time, x, y, track_minis
                 drivers_minisectors[driver_slug][ms_idx-1][3] = driver_prev_ms_time
                 
                 all_drivers_ms_best_time = track_minisectors.get_minisector_best_time_by_index(ms_idx-1)
-                if driver_prev_ms_time < all_drivers_ms_best_time:
+                [best_time, best_driver] = all_drivers_ms_best_time
+                if driver_prev_ms_time < best_time:
+                    if best_driver!="":
+                        last_ms = drivers_minisectors[best_driver][ms_idx-2][1] 
+                        drivers_minisectors[best_driver][ms_idx-1][1] = "G" if last_ms != "U" else last_ms
                     drivers_minisectors[driver_slug][ms_idx-1][1] = "P"  # Purple (session best)
-                    track_minisectors.update_minisector_best_time(ms_idx-1, driver_prev_ms_time)
+                    track_minisectors.update_minisector_best_time(ms_idx-1, driver_prev_ms_time, driver_slug)
             
     out_str = ["","",""]
     for ms in drivers_minisectors[driver_slug]:
@@ -205,9 +215,13 @@ def create_replay_dataframe(race, drivers_json, year):
     for idx, driver in enumerate(drivers_json):
         driver_slug = driver["id"]
         driver_abv = driver["abbreviation"]
-        driver_laps = session.laps.pick_drivers(driver_abv)
-        if driver_laps.empty:
-            print(f"\tNo laps found for driver {driver_slug} in race {race}. Skipping replay data for this driver.")
+        try:
+            driver_laps = session.laps.pick_drivers(driver_abv)
+            if driver_laps.empty:
+                print(f"\tNo laps found for driver {driver_slug} in race {race}. Skipping replay data for this driver.")
+                continue
+        except Exception:  # noqa: BLE001
+            print(f"\tError fetching laps for driver {driver_slug} in race {race}. Skipping replay data for this driver.")
             continue
         
         print(f"\tProcessing driver [{idx+1:02d}/{len(drivers_json)}] {driver_slug}{'.'*(30-len(driver_slug))}", end="", flush=True)
@@ -227,12 +241,6 @@ def create_replay_dataframe(race, drivers_json, year):
 
         for col in ['Sector1Time', 'Sector2Time', 'Sector3Time', 'LapTime']:
             laps_meta[col + '_sec'] = laps_meta[col].dt.total_seconds().fillna(0.0).astype(np.float32)
-
-        laps_meta['best_lap'] = laps_meta['LapTime_sec'].replace(0.0, np.nan).cummin().fillna(0.0).astype(np.float32)
-        laps_meta['best_s1'] = laps_meta['Sector1Time_sec'].replace(0.0, np.nan).cummin().fillna(0.0).astype(np.float32)
-        laps_meta['best_s2'] = laps_meta['Sector2Time_sec'].replace(0.0, np.nan).cummin().fillna(0.0).astype(np.float32)
-        laps_meta['best_s3'] = laps_meta['Sector3Time_sec'].replace(0.0, np.nan).cummin().fillna(0.0).astype(np.float32)
-        laps_meta['is_in_pit'] = laps_meta['PitInTime'].notna() 
         
         laps_telemetry = laps_telemetry.sort_values('SessionTime')        
         laps_meta = laps_meta.sort_values('LapStartTime')
@@ -253,16 +261,25 @@ def create_replay_dataframe(race, drivers_json, year):
         time_arr = (merged['SessionTime'].dt.total_seconds() - session_start_time).to_numpy(dtype=np.float32)
         curr_lap_time = merged.groupby('LapNumber')['Time'].transform(lambda s: s - s.iloc[0])
         curr_lap_time = curr_lap_time.dt.total_seconds().to_numpy(dtype=np.float32)
-        
-        s1_target = merged['Sector1Time_sec'].to_numpy()
-        s2_target = merged['Sector2Time_sec'].to_numpy()
-        s3_target = merged['Sector3Time_sec'].to_numpy()
 
-        # extracting the current sector timestamp (multiple lap telemetry data points) 
-        # and clipping to not exceed the final sector times (single lap data point)
+        merged.loc[merged['LapNumber'] == 1, 'LapTime_sec'] = 0.0
+        merged.loc[merged['LapNumber'] == 1, 'Sector1Time_sec'] = 0.0
+        merged.loc[merged['LapNumber'] == 1, 'Sector2Time_sec'] = 0.0
+        merged.loc[merged['LapNumber'] == 1, 'Sector3Time_sec'] = 0.0
+        
+        s1_target = merged['LapNumber'].map(merged.groupby('LapNumber')['Sector1Time_sec'].min().shift(-1).fillna(0))
+        s2_target = merged['LapNumber'].map(merged.groupby('LapNumber')['Sector2Time_sec'].min().shift(-1).fillna(0))
+        s3_target = merged['LapNumber'].map(merged.groupby('LapNumber')['Sector3Time_sec'].min().shift(-1).fillna(0))
+
         s1 = np.clip(curr_lap_time, 0, s1_target)
         s2 = np.clip(curr_lap_time - s1, 0, s2_target)
         s3 = np.clip(curr_lap_time - s1 - s2, 0, s3_target)
+        
+        merged['best_lap'] = merged['LapTime_sec'].replace(0.0, np.nan).cummin().fillna(0.0).astype(np.float32)
+        merged['best_s1'] = merged['Sector1Time_sec'].replace(0.0, np.nan).cummin().fillna(0.0).astype(np.float32)
+        merged['best_s2'] = merged['Sector2Time_sec'].replace(0.0, np.nan).cummin().fillna(0.0).astype(np.float32)
+        merged['best_s3'] = merged['Sector3Time_sec'].replace(0.0, np.nan).cummin().fillna(0.0).astype(np.float32)
+        merged['is_in_pit'] = merged['PitInTime'].notna() 
 
         speed = merged['Speed'].fillna(0.0).to_numpy(dtype=np.float32)
         speed_ms = speed * (1000.0 / 3600.0)
@@ -279,6 +296,9 @@ def create_replay_dataframe(race, drivers_json, year):
         final_lap = driver_laps['LapNumber'].max()
         is_retired = (lap_numbers == final_lap) if is_dnf else False
         
+        positions = merged['Position'].fillna(total_drivers).to_numpy(dtype=np.uint16)
+        positions = np.where(is_retired, total_drivers, positions)
+        
         pre = pd.DataFrame({
             "driver": driver_slug,
             "driver_abv": driver_abv,
@@ -288,7 +308,7 @@ def create_replay_dataframe(race, drivers_json, year):
             "z": merged['Z'].round(2).to_numpy(dtype=np.float32),
             "time": np.round(time_arr, 3),
             "time_sec_int": merged['time_sec_int'].to_numpy(),
-            "position": merged['Position'].fillna(total_drivers).to_numpy(dtype=np.uint16),
+            "position": positions,
             "compound": merged['Compound'].astype(str),
             "tyre_life": merged['TyreLife'].fillna(0).to_numpy(dtype=np.uint16),
             "gap_to_leader": np.float32(0.0),
