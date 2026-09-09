@@ -27,7 +27,7 @@ export default function ChampionshipStandingsTable({driverStandingsEvolution}:Pr
     const [hoveredCol, setHoveredCol] = useState<number | null>(null)
 
     return (
-        <div className="p-10 rounded-3xl border border-gray-primary overflow-hidden">
+        <div className="p-10 rounded-3xl border border-gray-primary lg:overflow-hidden overflow-auto">
             <table className="w-full text-center border-collapse font-mono">
                 <thead>
                     <tr>

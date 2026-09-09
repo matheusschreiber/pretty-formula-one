@@ -116,7 +116,7 @@ export default function TrackMap({ telemetryData, currentTime }: TrackMapProps) 
                 </svg>
             </div>
 
-            <div className="flex gap-10">
+            <div className="flex lg:flex-row flex-col lg:gap-10 gap-2">
                 <div className="flex gap-2 items-center">
                     <div className="h-3 w-3 bg-white rounded-full"></div> 
                     <p className="text-gray-light text-xs uppercase tracking-widest">

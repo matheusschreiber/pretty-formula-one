@@ -57,7 +57,7 @@ export default function TyreGraph({ telemetryData }: TyreGraphProps) {
     ) return null;
 
     return (
-        <div className="p-4 rounded-3xl border border-gray-primary flex flex-col items-center justify-center gap-4 w-fit h-64 px-8 overflow-hidden">
+        <div className="p-4 rounded-3xl border border-gray-primary flex flex-col items-center justify-center gap-4 lg:w-fit w-full h-64 px-8 overflow-hidden">
             <span className="text-[0.6rem] uppercase tracking-widest text-gray-light">Compound</span>
 
             <div className="flex items-start gap-6">

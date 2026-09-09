@@ -38,21 +38,21 @@ export default function PlaybackControls({
 
     return (
         <div className="mb-2 p-3 bg-zinc-900 border border-gray-primary rounded-2xl shrink-0">
-            <div className="flex flex-wrap items-center gap-3 mb-2">
+            <div className="flex lg:flex-row flex-col lg:items-center gap-3 mb-2">
                 <button
                     onClick={togglePlay}
-                    className="p-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg cursor-pointer transition-colors"
+                    className="lg:p-1.5 p-5 bg-zinc-800 hover:bg-zinc-700 w-fit rounded-lg cursor-pointer transition-colors"
                     aria-label={playing ? 'Pause' : 'Play'}
                 >
                     {playing ? <Pause size={16} /> : <Play size={16} />}
                 </button>
 
-                <div className="flex gap-1">
+                <div className="flex flex-wrap lg:mb-0 mb-5 gap-1">
                     {SPEED_OPTIONS.map(s => (
                         <button
                             key={s}
                             onClick={() => setSpeed(s)}
-                            className={`px-2 py-0.5 rounded-md font-mono cursor-pointer transition-colors ${
+                            className={`lg:px-2 px-6 lg:py-0.5 py-1.5 rounded-md font-mono cursor-pointer transition-colors ${
                                 speed === s
                                     ? 'bg-primary text-white'
                                     : 'bg-zinc-800 text-gray-300 hover:bg-zinc-700'
@@ -63,7 +63,7 @@ export default function PlaybackControls({
                     ))}
                 </div>
 
-                <div className="ml-auto flex items-center gap-3 text-gray-light font-mono">
+                <div className="lg:ml-auto lg:flex-row flex-col flex lg:items-center gap-3 text-gray-light font-mono">
                     {playing ? (
                         <div className="flex items-center gap-1 text-primary mr-10">
                             <div className="w-2.5 h-2.5 mb-0.5 rounded-full bg-primary animate-pulse" /> 

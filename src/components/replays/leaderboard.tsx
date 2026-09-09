@@ -154,161 +154,165 @@ export default function Leaderboard({ entries, highlights, driverInfoMap }: Lead
     }
 
     return (
-        <LayoutGroup>
-            <div className="flex-1 min-h-0 flex flex-col gap-1">
-                <div
-                    className="flex items-center text-center gap-2 md:gap-3 px-2 py-1.5 rounded-lg border border-gray-primary bg-zinc-900/40 text-[0.6rem] md:text-[0.65rem] font-mono uppercase tracking-wider text-gray-light shrink-0"
-                >
-                    <div className="w-1" />
-                    <div className="w-6">Pos</div>
-                    <div className="w-16">Driver</div>
-                    <div className="w-14">Tyre</div>
-                    <div className="w-24">Last Lap</div>
-                    <div className="w-18">Gap Leader</div>
-                    <div className="w-18">Gap Ahead</div>
-                    <div className="w-24">Best Lap</div>
-                    <div className="w-72">Sectors</div>
-                    <div className="w-52">Best Sectors</div>
-                    <div className="w-1" />
-                </div>
-                <AnimatePresence initial={false}>
-                    {entries.map((s, idx) => {
-                        const driver = driverInfoMap.get(s.driverId);
-                        const teamColor = driver
-                            ? (TEAM_COLORS[driver.team] || '#888')
-                            : '#888';
-                        const highlight = highlights.get(s.driverId);
-                        const r = s.record;
-                        const compound = (r.compound || '').toUpperCase();
+        <div className="lg:overflow-hidden overflow-x-scroll">
 
-                        return (
-                            <motion.div
-                                key={s.driverId}
-                                layout
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: r.is_retired ? 0.5 : 1, y: 0 }}
-                                exit={{ opacity: 0 }}
-                                transition={{
-                                    layout: { type: 'spring', stiffness: 500, damping: 40 },
-                                    opacity: { duration: 0.25 },
-                                }}
-                                className="relative flex-1 flex items-center gap-2 md:gap-3 px-2 rounded-lg border border-gray-primary bg-zinc-900/70 overflow-hidden"
-                            >
-                                {highlight && (
-                                    <motion.div
-                                        key={`${s.driverId}-flash-${highlight}`}
-                                        initial={{ opacity: 0.35 }}
-                                        animate={{ opacity: 0 }}
-                                        transition={{ duration: 1.4, ease: 'easeOut' }}
-                                        className={`absolute inset-0 pointer-events-none ${
-                                            highlight === 'up' ? 'bg-green-500' : 'bg-red-500'
-                                        }`}
+            <LayoutGroup>
+                <div className="flex-1 min-h-0 flex flex-col gap-1 lg:w-full w-280">
+                    <div
+                        className="flex items-center text-center gap-2 md:gap-3 px-2 py-1.5 rounded-lg border border-gray-primary bg-zinc-900/40 text-[0.6rem] md:text-[0.65rem] font-mono uppercase tracking-wider text-gray-light shrink-0"
+                    >
+                        <div className="w-1" />
+                        <div className="w-6">Pos</div>
+                        <div className="w-16">Driver</div>
+                        <div className="w-14">Tyre</div>
+                        <div className="w-24">Last Lap</div>
+                        <div className="w-18">Gap Leader</div>
+                        <div className="w-18">Gap Ahead</div>
+                        <div className="w-24">Best Lap</div>
+                        <div className="w-72">Sectors</div>
+                        <div className="w-52">Best Sectors</div>
+                        <div className="w-1" />
+                    </div>
+                    <AnimatePresence initial={false}>
+                        {entries.map((s, idx) => {
+                            const driver = driverInfoMap.get(s.driverId);
+                            const teamColor = driver
+                                ? (TEAM_COLORS[driver.team] || '#888')
+                                : '#888';
+                            const highlight = highlights.get(s.driverId);
+                            const r = s.record;
+                            const compound = (r.compound || '').toUpperCase();
+
+                            return (
+                                <motion.div
+                                    key={s.driverId}
+                                    layout
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: r.is_retired ? 0.5 : 1, y: 0 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{
+                                        layout: { type: 'spring', stiffness: 500, damping: 40 },
+                                        opacity: { duration: 0.25 },
+                                    }}
+                                    className="relative flex-1 flex items-center gap-2 md:gap-3 px-2 rounded-lg border border-gray-primary bg-zinc-900/70"
+                                >
+                                    {highlight && (
+                                        <motion.div
+                                            key={`${s.driverId}-flash-${highlight}`}
+                                            initial={{ opacity: 0.35 }}
+                                            animate={{ opacity: 0 }}
+                                            transition={{ duration: 1.4, ease: 'easeOut' }}
+                                            className={`absolute inset-0 pointer-events-none ${
+                                                highlight === 'up' ? 'bg-green-500' : 'bg-red-500'
+                                            }`}
+                                        />
+                                    )}
+
+                                    <div
+                                        className="w-1 h-4 rounded-full shrink-0"
+                                        style={{ backgroundColor: teamColor}}
                                     />
-                                )}
 
-                                <div
-                                    className="w-1 h-4 rounded-full shrink-0"
-                                    style={{ backgroundColor: teamColor }}
-                                />
+                                    <div className="w-6 h-8 flex items-center justify-center font-mono text-gray-light text-sm font-bold shrink-0">
+                                        {(idx + 1).toString().padStart(2, '0')}
+                                    </div>
 
-                                <div className="w-6 h-8 flex items-center justify-center font-mono text-gray-light text-sm font-bold shrink-0">
-                                    {(idx + 1).toString().padStart(2, '0')}
-                                </div>
+                                    <div className="w-16 flex items-center gap-2 sticky bg-zinc-900/70 left-1" 
+                                        title={driver?.name ?? idToLabel(s.driverId)}>
+                                            <img
+                                                src={driver?.teamLogo || placeholderTeamLogo}
+                                                alt={driver?.team ?? ''}
+                                                title={driver?.team ?? ''}
+                                                className="w-4 md:w-5 shrink-0"
+                                            />
+                                            <span
+                                                className="font-bold text-xs md:text-sm"
+                                                style={{ color: teamColor }}
+                                            >
+                                                {driver?.abbreviation ?? idToAbbr(s.driverId)}
+                                            </span>
+                                            {highlight === 'up' && (
+                                                <ChevronUp className="text-green-400 w-5 h-5" />
+                                            )}
+                                            {highlight === 'down' && (
+                                                <ChevronDown className="text-red-400 w-5 h-5" />
+                                            )}
+                                    </div>
 
-                                <div className="w-16 flex items-center gap-2 " title={driver?.name ?? idToLabel(s.driverId)}>
-                                        <img
-                                            src={driver?.teamLogo || placeholderTeamLogo}
-                                            alt={driver?.team ?? ''}
-                                            title={driver?.team ?? ''}
-                                            className="w-4 md:w-5 shrink-0"
-                                        />
-                                        <span
-                                            className="font-bold text-xs md:text-sm"
-                                            style={{ color: teamColor }}
-                                        >
-                                            {driver?.abbreviation ?? idToAbbr(s.driverId)}
+                                    <div className="w-14 flex justify-center items-center gap-1">
+                                        <span className="font-mono text-white w-6 text-center">
+                                            {r.tyre_life}
                                         </span>
-                                        {highlight === 'up' && (
-                                            <ChevronUp className="text-green-400 w-5 h-5" />
+                                        {COMPOUND_ICON[compound] && (
+                                            <img
+                                                src={COMPOUND_ICON[compound]}
+                                                alt={compound}
+                                                title={compound}
+                                                className="w-8 h-8"
+                                            />
                                         )}
-                                        {highlight === 'down' && (
-                                            <ChevronDown className="text-red-400 w-5 h-5" />
+                                    </div>
+
+                                    <div className="w-24 font-mono text-center">
+                                        {formatLapTime(r.last_lap_time)}
+                                    </div>
+
+                                    <div className="w-18 font-mono text-center text-gray-light">
+                                        {idx === 0 ? (
+                                            <span className="text-yellow-300">LEADER</span>
+                                        ) : (
+                                            r.is_in_pit ? '--' : formatGap(r.gap_to_leader)
                                         )}
-                                </div>
+                                    </div>
 
-                                <div className="w-14 flex justify-center items-center gap-1">
-                                    <span className="font-mono text-white w-6 text-center">
-                                        {r.tyre_life}
-                                    </span>
-                                    {COMPOUND_ICON[compound] && (
-                                        <img
-                                            src={COMPOUND_ICON[compound]}
-                                            alt={compound}
-                                            title={compound}
-                                            className="w-8 h-8"
-                                        />
-                                    )}
-                                </div>
+                                    <div className="w-18 font-mono text-center text-gray-light">
+                                        {idx === 0 ? (
+                                            <span className="text-yellow-300">INTERVAL</span>
+                                        ) : (
+                                            r.is_in_pit ? '--' : formatGap(r.gap_to_front)
+                                        )}
+                                    </div>
 
-                                <div className="w-24 font-mono text-center">
-                                    {formatLapTime(r.last_lap_time)}
-                                </div>
+                                    <div className="w-24 font-mono text-center">
+                                        <span className={`flex-1 px-1 ${lapClass(r.current_best_lap_time, sessionBest.lap)}`}>{formatLapTime(r.current_best_lap_time)}</span>
+                                    </div>
 
-                                <div className="w-18 font-mono text-center text-gray-light">
-                                    {idx === 0 ? (
-                                        <span className="text-yellow-300">LEADER</span>
-                                    ) : (
-                                        r.is_in_pit ? '--' : formatGap(r.gap_to_leader)
-                                    )}
-                                </div>
+                                    <div className="w-72 flex items-center gap-1 text-center">
+                                        {(() => {
+                                            const parts = (r.current_minisectors || '').split('_');
+                                            return (
+                                                <>
+                                                    <SectorMinisectors minisectors={parts[0] ?? ''} time={r.current_sector1_time} isInPit={r.is_in_pit} />
+                                                    <SectorMinisectors minisectors={parts[1] ?? ''} time={r.current_sector2_time} isInPit={r.is_in_pit} />
+                                                    <SectorMinisectors minisectors={parts[2] ?? ''} time={r.current_sector3_time} isInPit={r.is_in_pit} />
+                                                </>
+                                            );
+                                        })()}
+                                    </div>
+                                    
+                                    <div className="w-52 flex items-center gap-1 font-mono text-center">
+                                        <BestSectorCell value={r.best_sector1_time} isSessionBest={r.best_sector1_time === sessionBest.s1 && r.best_sector1_time > 0 && r.best_sector1_time < 999} />
+                                        <BestSectorCell value={r.best_sector2_time} isSessionBest={r.best_sector2_time === sessionBest.s2 && r.best_sector2_time > 0 && r.best_sector2_time < 999} />
+                                        <BestSectorCell value={r.best_sector3_time} isSessionBest={r.best_sector3_time === sessionBest.s3 && r.best_sector3_time > 0 && r.best_sector3_time < 999} />
+                                    </div>
 
-                                <div className="w-18 font-mono text-center text-gray-light">
-                                    {idx === 0 ? (
-                                        <span className="text-yellow-300">INTERVAL</span>
-                                    ) : (
-                                        r.is_in_pit ? '--' : formatGap(r.gap_to_front)
-                                    )}
-                                </div>
-
-                                <div className="w-24 font-mono text-center">
-                                    <span className={`flex-1 px-1 ${lapClass(r.current_best_lap_time, sessionBest.lap)}`}>{formatLapTime(r.current_best_lap_time)}</span>
-                                </div>
-
-                                <div className="w-72 flex items-center gap-1 text-center">
-                                    {(() => {
-                                        const parts = (r.current_minisectors || '').split('_');
-                                        return (
-                                            <>
-                                                <SectorMinisectors minisectors={parts[0] ?? ''} time={r.current_sector1_time} isInPit={r.is_in_pit} />
-                                                <SectorMinisectors minisectors={parts[1] ?? ''} time={r.current_sector2_time} isInPit={r.is_in_pit} />
-                                                <SectorMinisectors minisectors={parts[2] ?? ''} time={r.current_sector3_time} isInPit={r.is_in_pit} />
-                                            </>
-                                        );
-                                    })()}
-                                </div>
-                                
-                                <div className="w-52 flex items-center gap-1 font-mono text-center">
-                                    <BestSectorCell value={r.best_sector1_time} isSessionBest={r.best_sector1_time === sessionBest.s1 && r.best_sector1_time > 0 && r.best_sector1_time < 999} />
-                                    <BestSectorCell value={r.best_sector2_time} isSessionBest={r.best_sector2_time === sessionBest.s2 && r.best_sector2_time > 0 && r.best_sector2_time < 999} />
-                                    <BestSectorCell value={r.best_sector3_time} isSessionBest={r.best_sector3_time === sessionBest.s3 && r.best_sector3_time > 0 && r.best_sector3_time < 999} />
-                                </div>
-
-                                <div className="shrink-0">
-                                    {r.is_retired ? (
-                                        <span className="px-1 text-[0.7rem] py-0.5 bg-red-900/70 text-red-200 rounded">
-                                            DNF
-                                        </span>
-                                    ) : r.is_in_pit ? (
-                                        <span className="px-1 text-[0.7rem] py-0.5 bg-yellow-900/70 text-yellow-200 rounded">
-                                            PIT
-                                        </span>
-                                    ) : null}
-                                </div>
-                            </motion.div>
-                        );
-                    })}
-                </AnimatePresence>
-            </div>
-        </LayoutGroup>
+                                    <div className="shrink-0">
+                                        {r.is_retired ? (
+                                            <span className="px-1 text-[0.7rem] py-0.5 bg-red-900/70 text-red-200 rounded">
+                                                DNF
+                                            </span>
+                                        ) : r.is_in_pit ? (
+                                            <span className="px-1 text-[0.7rem] py-0.5 bg-yellow-900/70 text-yellow-200 rounded">
+                                                PIT
+                                            </span>
+                                        ) : null}
+                                    </div>
+                                </motion.div>
+                            );
+                        })}
+                    </AnimatePresence>
+                </div>
+            </LayoutGroup>
+        </div>
     );
 }

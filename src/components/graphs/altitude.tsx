@@ -61,7 +61,7 @@ export default function AltitudeGraph({
     const currentZ = last1?.z ?? last2?.z ?? 0;
 
     return (
-        <div className="p-6 rounded-3xl border border-gray-primary overflow-hidden h-64 w-95">
+        <div className="p-6 rounded-3xl border border-gray-primary overflow-hidden h-64 lg:w-95 w-full">
             <div className="flex justify-between mb-4 text-[0.6rem] uppercase tracking-widest text-gray-light">
                 <span className="flex items-center gap-2">
                     <div className="w-3 h-1 bg-blue-500 rounded-full" /> Altitude (Rel)

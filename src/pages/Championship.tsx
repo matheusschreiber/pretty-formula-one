@@ -52,8 +52,8 @@ export default function Championship() {
             <Header />
             
             <div className="flex items-center my-5 justify-center">
-                <a href="/" className="mr-20">
-                    <button className="px-5 py-2 bg-zinc-900 border border-gray-primary rounded-lg shadow-xl cursor-pointer
+                <a href="/" className="lg:mr-20 mr-2">
+                    <button className="px-4 py-3 bg-zinc-900 border border-gray-primary rounded-lg shadow-xl cursor-pointer
                     hover:bg-zinc-800 transition-all duration-300 scale-100 hover:scale-105">
                         Go back
                     </button>

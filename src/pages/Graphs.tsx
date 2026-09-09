@@ -236,9 +236,9 @@ export default function Graphs() {
         <div className="w-full">
             <Header />
 
-            <div className="w-full flex items-center my-10 justify-center gap-5">
+            <div className="w-full flex items-center lg:flex-row flex-col my-10 justify-center gap-5">
 
-                <a href="/" className="mr-20">
+                <a href="/" className="lg:mr-20 mr-0">
                     <button className="px-5 py-2 bg-zinc-900 border border-gray-primary rounded-lg shadow-xl cursor-pointer
                     hover:bg-zinc-800 transition-all duration-300 scale-100 hover:scale-105">
                         Go back
@@ -291,7 +291,7 @@ export default function Graphs() {
                 {telemetryData && telemetryData.driver1.length > 0 && 
                     telemetryData.driver2.length > 0 && !dnfDriverId && (
                     <>
-                        <p className="text-center w-full text-gray-light">
+                        <p className="text-center lg:w-full w-[80%] lg:mx-0 mx-auto text-gray-light">
                             Showing the fastest laps of <strong>{driver1?.name || "---"}</strong> ({" "}
                             <strong className="text-red-500">
                                 {formatElapsedTime(telemetryData.driver1[telemetryData.driver1.length - 1].seconds) || "---"}
@@ -301,17 +301,17 @@ export default function Graphs() {
                             </strong>) on the
                             <strong> {year} {round?.name || "---"}</strong>.
                         </p>
-                        <div className="w-full flex justify-center p-8 gap-10">
+                        <div className="w-full flex lg:flex-row flex-col justify-center p-8 gap-10">
                             <div className="flex flex-col gap-10">
                                 <TrackMap telemetryData={telemetryData} currentTime={currentTime} />
-                                <div className="w-full flex justify-center gap-10">
+                                <div className="w-full flex lg:flex-row flex-col justify-center gap-10">
                                     <GearGraph telemetryData={telemetryData} currentTime={currentTime} />
                                     <TyreGraph telemetryData={telemetryData} />
                                 </div>
                             </div>
                             <div className="flex flex-col gap-10">
                                 <BrakeThrottleGraph telemetryData={telemetryData} currentTime={currentTime} />
-                                <div className="flex gap-10">
+                                <div className="flex gap-10 lg:flex-row flex-col">
                                     <RPMGraph telemetryData={telemetryData} currentTime={currentTime} />
                                     <AltitudeGraph telemetryData={telemetryData} currentTime={currentTime} />
                                 </div>

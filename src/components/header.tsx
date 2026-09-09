@@ -30,12 +30,12 @@ export default function Header() {
     const hoursDeg = (time.hours % 12) * 30 + (time.minutes / 60) * 30;
 
     return (
-        <header className='flex items-center px-10'>
-            <a href="/" className='absolute hover:scale-110 transition-transform duration-200'>
+        <header className='flex lg:flex-row flex-col items-center px-10'>
+            <a href="/" className='absolute hover:scale-110 transition-transform duration-200 lg:mt-0 mt-10'>
                 <img src={logo} className="h-15" alt="Logo" />
             </a>
 
-            <div className='w-full flex justify-center'>
+            <div className='w-full flex justify-center lg:mt-0 mt-30'>
                 <div className='flex items-center gap-6 bg-black p-3 px-8 rounded-2xl border border-gray-primary shadow-2xl mt-8'>
 
                     <div className='flex flex-col items-center '>

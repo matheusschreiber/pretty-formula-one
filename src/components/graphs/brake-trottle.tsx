@@ -59,7 +59,7 @@ export default function BrakeThrottleGraph({
 
     return (
         <div className="p-6 rounded-3xl border border-gray-primary overflow-hidden h-64">
-            <div className="flex justify-between mb-4 text-[0.6rem] uppercase tracking-widest text-gray-light">
+            <div className="flex lg:flex-row flex-col lg:gap-0 gap-5 justify-between mb-4 text-[0.6rem] uppercase tracking-widest text-gray-light">
                 <span className="flex items-center gap-4">
                     <span className="flex items-center gap-2">
                         <div className="w-3 h-1 bg-green-500 rounded-full" /> Throttle (%)
