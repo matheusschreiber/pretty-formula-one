@@ -40,6 +40,8 @@ if __name__ == "__main__":
     parser.add_argument("-r", "--no-round", dest="dont_process_round_data", action="store_false")
     parser.add_argument("-t", "--no-telemetry", dest="dont_process_telemetry_data", action="store_false")
     parser.add_argument("-p", "--no-replay", dest="dont_process_replay_data", action="store_false")
+    parser.add_argument("-y", "--year", dest="year", type=int, help="Specify the year for the automation script")
+    parser.add_argument("-a", "--races", dest="races", type=str, help="Specify the races manually (comma-separated) for the automation script")
     args = parser.parse_args()
 
     process_driver_data = args.dont_process_driver_data 
@@ -52,6 +54,10 @@ if __name__ == "__main__":
     print("Telemetry data processing:", process_telemetry_data)
     print("Replay data processing:", process_replay_data)
     
+    races_specified = [int(r) for r in args.races.split(",")] if args.races else None
+    if races_specified:
+        print("Races specified:", races_specified)
+    
     print(f"Connecting to AWS S3 bucket {BUCKET_NAME}...", end="", flush=True)
     
     s3_aws_client = boto3.client(
@@ -63,7 +69,7 @@ if __name__ == "__main__":
     
     print(" [Connected]")
     
-    year = datetime.now().year  # noqa: DTZ005
+    year = args.year if args.year else datetime.now().year  # noqa: DTZ005
     
     print(f"Starting automation script for year {year}...")
     
@@ -106,7 +112,10 @@ if __name__ == "__main__":
         print(f"Processing rounds data for year {year}...")
         
         processed_rounds = [r['index'] for r in rounds_json]
-        rounds_to_process = [r for r in available_rounds if r not in processed_rounds]
+        if not races_specified:
+            rounds_to_process = [r for r in available_rounds if r not in processed_rounds]
+        else:
+            rounds_to_process = races_specified[:]
         if rounds_to_process:
             rounds_json = update_rounds_json(drivers_json, rounds_json, year, rounds_to_process)
             upload_to_aws(
@@ -130,8 +139,12 @@ if __name__ == "__main__":
         print(f"Processing telemetry data for year {year}...")
 
         for driver in drivers_json:
-            rounds_to_process = get_unprocessed_round_driver_telemetry(available_rounds, driver["id"], telemetries_csvs_filenames)
-            print(f"Driver {driver['id']} - Missing rounds: {rounds_to_process}")
+            if not races_specified:
+                rounds_to_process = get_unprocessed_round_driver_telemetry(available_rounds, driver["id"], telemetries_csvs_filenames)
+                print(f"Driver {driver['id']} - Missing rounds: {rounds_to_process}")
+            else:
+                rounds_to_process = races_specified[:]
+                print(f"Driver {driver['id']} - Specified rounds: {rounds_to_process}")
             for r in rounds_to_process:
                 telemetry = get_new_telemetry_csv(year, driver["id"], r)
                 if telemetry is None:
@@ -156,7 +169,10 @@ if __name__ == "__main__":
     
         print(f"Processing replay data for year {year}...")
         
-        rounds_to_process = get_unprocessed_round_replay(available_rounds, replays_parquet_filenames)
+        if not races_specified:
+            rounds_to_process = get_unprocessed_round_replay(available_rounds, replays_parquet_filenames)
+        else:
+            rounds_to_process = races_specified[:]
         
         print("Rounds to process for replay data:", rounds_to_process)
         
