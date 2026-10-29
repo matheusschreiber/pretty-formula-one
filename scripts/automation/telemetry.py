@@ -29,6 +29,13 @@ def get_new_telemetry_csv(year, driver_id, round_id):
     if driver_abv is None:
         print(f"Driver {driver_id} not found in round {round_id} {year}.")
         return None
+    try:
+        if session.laps.empty:
+            print(f"No laps found for round {round_id} {year}.")
+            return None
+    except Exception as e:  # noqa: BLE001
+        print(f"Failed to check laps for round {round_id} {year}. Exception: {e}")
+        return None
     driver_laps = session.laps.pick_drivers(driver_abv)
     if driver_laps.empty:
         print(f"No laps found for driver {driver_id} in round {round_id} {year}.")
