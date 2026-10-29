@@ -16,7 +16,11 @@ def get_new_telemetry_csv(year, driver_id, round_id):
     
     print(f"Fetching telemetry for driver {driver_id} in round {round_id} {year}...")
     session = fastf1.get_session(year, round_id, "R")
-    session.load(laps=True, telemetry=True, weather=False)
+    try:
+        session.load(laps=True, telemetry=True, weather=False)
+    except Exception as e:  # noqa: BLE001
+        print(f"Failed to load session for driver {driver_id} in round {round_id} {year}. Exception: {e}")
+        return None
     driver_abv = None
     for _, row in session.results.iterrows():
         if row["DriverId"] == driver_id.replace(f"_{year}", ""):
